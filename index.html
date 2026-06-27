@@ -6,108 +6,203 @@
 <title>FireWatch Alberta — Pre-Season Benchmark</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--ink:#1a1410;--muted:#7a6f64;--line:#e7e0d6;--bg:#f7f4ee;--card:#fff;
-  --fire:#c0392b;--light:#2f6fa8;--human:#d98324;
-  --flag:#a93226;--flagbg:#fbeae8;--ok:#3a7d44;--okbg:#eaf6ec;
-  --shadow:0 1px 3px rgba(0,0,0,.07);}
+:root{
+  --ink:#1a1410;--muted:#7a6f64;--faint:#b3a896;--line:#e7e0d6;--bg:#f3efe8;--card:#fff;
+  --fire:#c0392b;--light:#2f6fa8;--human:#d98324;--ok:#3a7d44;
+  --flag:#a93226;--flagbg:#fbeae8;--okbg:#eaf6ec;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+  --r1:#fbeae8;--r2:#f7d5d0;--r3:#f0a090;--r4:#e06050;--r5:#c0392b;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font:14.5px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);}
-.wrap{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
-header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px}
-header h1{font-size:24px;letter-spacing:-.4px}
-header .sub{color:var(--muted);font-size:13px}
-.scopebar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;font-size:11.5px}
+body{font:14px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);}
+.wrap{max-width:1200px;margin:0 auto;padding:18px 18px 60px}
+
+/* ── Header ── */
+header{background:linear-gradient(135deg,#2a2520 0%,#5a2a1e 100%);color:#fff;border-radius:12px;padding:16px 22px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:22px;font-weight:800;letter-spacing:-.3px}
+header .sub{font-size:12px;color:#e9d8c6;margin-top:2px}
+header .hstats{display:flex;gap:16px;font-size:12px;color:#fde8e0;text-align:right}
+header .hstats span{display:block;font-size:16px;font-weight:700;color:#fff}
+
+/* ── Scope bar ── */
+.scopebar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;font-size:11.5px}
 .scopebar span{background:#efe8dd;border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:#5b5147}
-.scopebar .warn{background:var(--flagbg);border-color:#e8c4bf;color:var(--flag)}
-.headline{background:linear-gradient(180deg,#fff,#fdf8f3);border:1px solid var(--line);border-left:4px solid var(--fire);border-radius:10px;padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow)}
-.headline h2{font-size:16px;margin-bottom:5px}
-.headline p{font-size:13px;color:#5b5147}
+.scopebar .warn{background:var(--flagbg);border-color:#e8c4bf;color:var(--flag);font-weight:600}
+
+/* ── Headline ── */
+.headline{background:linear-gradient(180deg,#fff,#fdf8f3);border:1px solid var(--line);border-left:4px solid var(--fire);border-radius:10px;padding:13px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.headline h2{font-size:15px;margin-bottom:4px}
+.headline p{font-size:13px;color:#5b5147;line-height:1.5}
 .headline b{color:var(--fire)}
-.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:6px 6px 0 0;border:1px solid transparent;border-bottom:none;background:transparent;white-space:nowrap}
+
+/* ── Scorecard grid ── */
+.scorecard{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+@media(max-width:800px){.scorecard{grid-template-columns:repeat(2,1fr)}}
+.sc-tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.sc-tile:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.sc-tile.sel{outline:2px solid var(--ink);outline-offset:1px}
+.sc-tile .sc-name{font-size:12px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-tile .sc-ratio{font-size:22px;font-weight:800;line-height:1;margin-bottom:3px}
+.sc-tile .sc-label{font-size:10px;color:var(--muted)}
+.sc-tile .sc-lever{font-size:9.5px;margin-top:5px;padding:1px 6px;border-radius:3px;display:inline-block}
+.sc-tile .sc-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+.ratio-above .sc-ratio{color:var(--flag)}
+.ratio-near  .sc-ratio{color:#9a6020}
+.ratio-below .sc-ratio{color:var(--ok)}
+.ratio-above .sc-bar{background:var(--flag)}
+.ratio-near  .sc-bar{background:#d98324}
+.ratio-below .sc-bar{background:var(--ok)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:6px 6px 0 0;border:1px solid transparent;border-bottom:none;white-space:nowrap}
 .tab:hover{color:var(--ink);background:#f0ece4}
 .tab.on{color:var(--ink);background:var(--card);border-color:var(--line);border-bottom:1px solid var(--card);margin-bottom:-1px}
 .tabpanel{display:none}.tabpanel.on{display:block}
-.cols{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
-@media(max-width:800px){.cols{grid-template-columns:1fr}}
-h3.sect{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;font-weight:700}
-.wl{display:flex;flex-direction:column;gap:6px}
-.region-item{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);transition:border-color .15s}
-.region-item:hover{border-color:#c9bdac}
-.region-item.sel{outline:2px solid var(--ink)}
-.region-item.flag-h{border-left:3px solid var(--flag)}
-.region-item .nm{font-weight:600;font-size:13px;flex:1}
-.region-item .rr{font-size:11px;color:var(--muted);text-align:right;line-height:1.3}
-.region-item .rr b{font-size:12.5px;color:var(--ink)}
-.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:3px}
-.badge-h{background:var(--flagbg);color:var(--flag)}
-.badge-c{background:#eaf2fa;color:var(--light)}
+
+/* ── Region detail ── */
 .detail{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;box-shadow:var(--shadow)}
-.detail h2{font-size:20px;margin-bottom:2px}
-.detail .loc{color:var(--muted);font-size:12px;margin-bottom:14px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:13px;margin-bottom:16px}
-.stat .v{font-size:21px;font-weight:700;line-height:1.05}
-.stat .l{font-size:11px;color:var(--muted);margin-top:2px}
-.stat .n{font-size:10px;color:#b3a896}
-.cause-row{display:flex;align-items:center;gap:7px;margin:3px 0;font-size:12px}
-.cause-row .lbl{width:140px;text-align:right;color:#5b5147;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cause-row .track{flex:1;background:#f0ece4;border-radius:3px;height:14px;overflow:hidden}
-.cause-row .bar{height:14px}
-.cause-row .pct{width:95px;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px}
-.chart-wrap{position:relative;height:220px;margin-top:10px}
-.chart-wrap-tall{position:relative;height:280px;margin-top:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.detail h2{font-size:20px;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+.detail .loc{color:var(--muted);font-size:12px;margin-bottom:16px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#faf8f5;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi .v{font-size:20px;font-weight:800;line-height:1.05}
+.kpi .l{font-size:10.5px;color:var(--muted);margin-top:2px}
+.kpi .n{font-size:10px;color:#c9bdac}
+.kpi.flagged{background:var(--flagbg);border-color:#e8c4bf}
+.kpi.flagged .v{color:var(--flag)}
+
+/* ── Ratio gauge ── */
+.gauge-wrap{margin-bottom:16px}
+.gauge-track{height:10px;background:#f0ece4;border-radius:5px;position:relative;overflow:visible}
+.gauge-fill{height:10px;border-radius:5px;transition:width .4s}
+.gauge-threshold{position:absolute;top:-3px;width:2px;height:16px;background:var(--ink);border-radius:1px}
+.gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── Stacked cause bar ── */
+.cause-stack{height:22px;border-radius:4px;overflow:hidden;display:flex;margin:8px 0 4px;cursor:default}
+.cause-stack div{height:100%;transition:width .3s}
+.cause-legend{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin-top:4px}
+.cause-legend span{display:flex;align-items:center;gap:3px;cursor:pointer}
+.cause-legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── Size visual ── */
+.size-visual{background:#faf8f5;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px}
+.size-visual h4{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
+.size-track{height:8px;background:#f0ece4;border-radius:4px;position:relative;margin:16px 0 4px}
+.size-marker{position:absolute;transform:translateX(-50%);top:-18px;font-size:10px;text-align:center;white-space:nowrap}
+.size-dot{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;transform:translate(-50%,-2px);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+
+/* ── Sparkline ── */
+.sparkline{display:flex;align-items:flex-end;gap:1px;height:36px;margin:6px 0}
+.sparkline .bar{flex:1;border-radius:2px 2px 0 0;min-height:2px;transition:height .2s}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;box-shadow:var(--shadow)}
+h3.sect{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:700}
 .nullnote{font-size:11.5px;color:var(--flag);background:var(--flagbg);border-radius:6px;padding:5px 10px;margin-top:8px}
 .oknote{font-size:11.5px;color:var(--ok);background:var(--okbg);border-radius:6px;padding:5px 10px;margin-top:8px}
-.skill-panel{margin-top:16px}
-.skill-btn{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
-.skill-btn:hover{opacity:.85}
+.note2012{font-size:11.5px;background:#fdf3e7;border:1px solid #f0d090;border-radius:6px;padding:5px 10px;margin-top:8px;color:#7a5010}
+
+/* ── Skill buttons ── */
+.skill-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.skill-btn{display:inline-flex;align-items:center;gap:5px;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.skill-btn:hover{opacity:.82}
 .skill-btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .skill-btn.sec:hover{background:#f5f0e8}
 .skill-output{margin-top:12px;background:#fdf9f5;border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.65;display:none}
 .skill-output.show{display:block}
-.skill-output h3{font-size:13.5px;margin-bottom:8px;color:var(--ink)}
-.skill-output table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
-.skill-output th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;text-transform:uppercase}
-.skill-output td{padding:5px 8px;border-bottom:1px solid #f0ece4;vertical-align:top}
-.tier-A{color:var(--ok);font-weight:700}
-.tier-B{color:#7a6030;font-weight:700}
-.tier-C{color:var(--flag);font-weight:700}
-.tier-D{color:#888;font-weight:700}
-.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.skill-output table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.skill-output th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);color:var(--muted);font-size:10.5px;text-transform:uppercase}
+.skill-output td{padding:5px 8px;border-bottom:1px solid #f0ece4}
+.tier-A{color:var(--ok);font-weight:700}.tier-B{color:#7a6030;font-weight:700}
+.tier-C{color:var(--flag);font-weight:700}.tier-D{color:#888;font-weight:700}
+
+/* ── Charts ── */
+.chart-wrap{position:relative;height:220px;margin-top:10px}
+.chart-wrap-tall{position:relative;height:280px;margin-top:10px}
+select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-radius:6px;background:#fff;margin-bottom:10px}
+
+/* ── Recommend ── */
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:700px){.rec-grid{grid-template-columns:1fr}}
 .rec-list{list-style:none}
-.rec-list li{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
-.rec-list li:last-child{border-bottom:none}
+.rec-list li{padding:7px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.rec-list li:last-child{border:none}
+.rec-row1{display:flex;align-items:center;gap:8px;font-size:13px}
 .rec-rank{font-weight:700;width:22px;color:var(--muted);font-size:12px}
-.rec-name{font-weight:600}
+.rec-name{font-weight:600;flex:1}
 .rec-score{font-size:11px;color:var(--muted)}
-.rec-lever{font-size:11px;color:#5b5147;font-style:italic;flex-basis:100%;padding-left:30px}
+.rec-lever{font-size:11px;color:#5b5147;font-style:italic;padding-left:30px}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:3px}
+.badge-h{background:var(--flagbg);color:var(--flag)}.badge-c{background:#eaf2fa;color:var(--light)}
+
+/* ── Co-spike ── */
 .co-year{display:inline-block;background:#ffe8cc;border:1px solid #f0c060;border-radius:4px;padding:1px 7px;font-size:12px;margin:2px}
-.log-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
-.log-table th{text-align:left;border-bottom:1px solid var(--line);padding:5px 8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── Chatbot ── */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 280px);min-height:400px;max-height:700px}
+.api-key-bar{background:#fdf8f0;border:1px solid #e8d8b8;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px}
+.api-key-bar input{flex:1;min-width:200px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;font-family:inherit;background:#fff}
+.api-key-bar .status{font-size:11.5px;color:var(--muted)}
+.api-key-bar .status.ok{color:var(--ok)}.api-key-bar .status.err{color:var(--flag)}
+.chat-messages{flex:1;overflow-y:auto;padding:4px 0;display:flex;flex-direction:column;gap:12px}
+.cmsg{display:flex;gap:9px;max-width:90%}
+.cmsg.bot{align-self:flex-start}
+.cmsg.user{align-self:flex-end;flex-direction:row-reverse}
+.cavatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.cmsg.bot .cavatar{background:#fde3dd}
+.cmsg.user .cavatar{background:#1f3a52;color:#fff;font-size:11px;font-weight:700}
+.cbubble{padding:10px 14px;border-radius:4px 12px 12px 12px;font-size:13px;line-height:1.6;max-width:600px}
+.cmsg.bot .cbubble{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.cmsg.user .cbubble{background:#1f3a52;color:#fff;border-radius:12px 4px 12px 12px}
+.cbubble b{color:inherit}
+.cbubble .cnote{font-size:11px;color:var(--muted);border-top:1px dashed var(--line);margin-top:7px;padding-top:5px}
+.chat-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{background:#fff;border:1px solid var(--line);border-radius:16px;padding:5px 12px;font-size:12px;color:#5b5147;cursor:pointer;transition:.12s}
+.chip:hover{border-color:var(--fire);color:var(--fire)}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+#chat-q{flex:1;border:1px solid var(--line);border-radius:20px;padding:9px 14px;font:13.5px inherit;resize:none;outline:none;max-height:100px;background:#fff}
+#chat-q:focus{border-color:var(--fire)}
+#chat-send{background:var(--fire);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:17px;cursor:pointer;flex-shrink:0;transition:background .12s}
+#chat-send:hover{background:#a93226}
+.chat-region-bar{font-size:12px;color:var(--muted);margin-bottom:8px}
+.chat-region-bar select{border:1px solid var(--line);border-radius:6px;padding:3px 8px;font:12px inherit;margin-left:6px;background:#fff}
+.typing{display:flex;align-items:center;gap:4px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:4px 12px 12px 12px;width:fit-content}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+/* ── Override log ── */
+.log-table{width:100%;border-collapse:collapse;font-size:12px}
+.log-table th{text-align:left;border-bottom:1px solid var(--line);padding:5px 8px;color:var(--muted);font-size:10.5px;text-transform:uppercase}
 .log-table td{padding:5px 8px;border-bottom:1px solid #f0ece4;vertical-align:top}
-.log-empty{color:var(--muted);font-size:13px;padding:10px 0}
 .ovr-form input,.ovr-form textarea{width:100%;padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;margin-bottom:8px}
 .ovr-form textarea{min-height:60px;resize:vertical}
 .alert{padding:8px 12px;border-radius:6px;font-size:12.5px;margin-top:8px}
-.alert.ok{background:var(--okbg);color:var(--ok)}
-.alert.err{background:var(--flagbg);color:var(--flag)}
-select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-radius:6px;background:#fff;margin-bottom:10px}
-.note2012{font-size:11.5px;background:#fdf3e7;border:1px solid #f0d090;border-radius:6px;padding:5px 10px;margin-top:8px;color:#7a5010}
+.alert.ok{background:var(--okbg);color:var(--ok)}.alert.err{background:var(--flagbg);color:var(--flag)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
+<!-- Header -->
 <header>
-  <div><h1>FireWatch Alberta</h1><div class="sub">Pre-Season Regional Benchmark · 2006–2025</div></div>
-  <div class="sub" id="hdr-right"></div>
+  <div>
+    <h1>🔥 FireWatch Alberta</h1>
+    <div class="sub">Pre-Season Regional Benchmark · 2006–2025 · FPA-only</div>
+  </div>
+  <div class="hstats">
+    <div><span id="hdr-fires"></span>total fires</div>
+    <div><span id="hdr-ha"></span>total ha burned</div>
+    <div><span id="hdr-flag"></span>areas above norm</div>
+  </div>
 </header>
 
 <div class="scopebar">
-  <span>FPA-only — Mutual Aid fires outside the Forest Protection Area excluded</span>
-  <span>20-yr mean annual baseline · flag threshold 1.3×</span>
+  <span>FPA-only — Mutual Aid excluded</span>
+  <span>20-yr mean annual baseline · 1.3× flag threshold</span>
+  <span>Size = median + p90 + total · never a bare mean</span>
   <span class="warn" id="flag-badge"></span>
 </div>
 
@@ -116,40 +211,40 @@ select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-ra
   <p id="hl-text"></p>
 </div>
 
+<!-- Province Scorecard -->
+<h3 class="sect">10 Forest Areas — Ha Ratio vs 20-yr Mean (click to explore)</h3>
+<div class="scorecard" id="scorecard"></div>
+
+<!-- Tabs -->
 <div class="tabs">
   <div class="tab on" data-tab="overview">Overview</div>
   <div class="tab" data-tab="trend">Annual Trend</div>
   <div class="tab" data-tab="recommend">Recommend</div>
   <div class="tab" data-tab="cross">Cross-Region</div>
   <div class="tab" data-tab="anomaly">Anomaly</div>
+  <div class="tab" data-tab="assistant">🤖 Assistant</div>
   <div class="tab" data-tab="log">Override Log</div>
 </div>
 
 <!-- OVERVIEW -->
 <div class="tabpanel on" id="tab-overview">
-  <div class="cols">
-    <div>
-      <h3 class="sect">Watch List — All 10 Forest Areas</h3>
-      <div class="wl" id="watchlist"></div>
-    </div>
-    <div class="detail" id="detail-panel"><p style="color:var(--muted);padding:20px">Select a region →</p></div>
-  </div>
+  <div class="detail" id="detail-panel"></div>
 </div>
 
 <!-- TREND -->
 <div class="tabpanel" id="tab-trend">
   <div class="card">
     <h3 class="sect">Province-wide Annual Trend · 2006–2025</h3>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Fire count (line, right axis) and hectares burned (bars, left axis).</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Hectares burned (bars, left) and fire count (line, right). Dashed line = 2012 cause reclassification.</p>
     <div class="chart-wrap-tall"><canvas id="trend-chart"></canvas></div>
-    <div class="note2012">⚠ 2012 reclassification: Agriculture &amp; Government split out of Resident/Other Industry. Cause trends crossing this year are not directly comparable.</div>
+    <div class="note2012">⚠ 2012: Agriculture &amp; Government split out of Resident/Other Industry — cause trends crossing this year are not directly comparable.</div>
     <div style="margin-top:14px">
       <h3 class="sect">Count vs. Area — The Distribution Story</h3>
       <p id="dist-story" style="font-size:13px;line-height:1.6;color:#5b5147"></p>
     </div>
   </div>
-  <div class="card" style="margin-top:16px">
-    <h3 class="sect">Per-Region Annual Hectares</h3>
+  <div class="card" style="margin-top:14px">
+    <h3 class="sect">Per-Region Annual Hectares vs 20-yr Mean</h3>
     <select class="fw" id="region-trend-sel"></select>
     <div class="chart-wrap"><canvas id="region-trend-chart"></canvas></div>
   </div>
@@ -157,50 +252,41 @@ select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-ra
 
 <!-- RECOMMEND -->
 <div class="tabpanel" id="tab-recommend">
-  <div class="card" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:14px">
     <h3 class="sect">Recommendation Engine</h3>
-    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">
-      Scores all 10 areas on 4 dimensions: hectares ratio (40%), count ratio (15%), cause lever (30%), response lag (15%).
-      Produces two ranked lists for analyst approval.
-    </p>
-    <button class="skill-btn" id="run-rec-btn">⚡ Run Recommendation</button>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Scores all 10 areas on: hectares ratio (40%), count ratio (15%), cause lever (30%), response lag (15%).</p>
+    <button class="skill-btn" id="run-rec-btn">⚡ Generate Ranked Lists</button>
   </div>
   <div id="rec-out" style="display:none">
     <div class="rec-grid">
-      <div class="card"><h3 class="sect">Deployment Priority</h3>
-        <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px">Initial Attack crew / air tanker pre-positioning</p>
-        <ul class="rec-list" id="deploy-list"></ul></div>
-      <div class="card"><h3 class="sect">Prevention Priority</h3>
-        <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px">Fire bans · public education · industry restrictions</p>
-        <ul class="rec-list" id="prevent-list"></ul></div>
+      <div class="card"><h3 class="sect">Deployment Priority — Initial Attack / Air Tanker</h3><ul class="rec-list" id="deploy-list"></ul></div>
+      <div class="card"><h3 class="sect">Prevention Priority — Bans · Education · Restrictions</h3><ul class="rec-list" id="prevent-list"></ul></div>
     </div>
-    <div class="nullnote" style="margin-top:12px">FPA-only — excludes Mutual Aid fires. Any total is an FPA total, not all-Alberta. 20-yr mean annual baseline; flag threshold 1.3×. The dashboard surfaces the signal; the analyst makes and owns the recommendation.</div>
-    <div style="margin-top:10px;font-size:12px;color:var(--muted)"><b>Override rule:</b> any change to this ranking must be logged in the Override Log tab with analyst name, original flag, and reason. No log = no change.</div>
+    <div class="nullnote" style="margin-top:12px">FPA-only. The dashboard surfaces the signal — the analyst makes and owns the recommendation. Any change must be logged in Override Log.</div>
   </div>
 </div>
 
 <!-- CROSS-REGION -->
 <div class="tabpanel" id="tab-cross">
   <div class="card">
-    <h3 class="sect">Cross-Region Pattern — Co-Spike Detection</h3>
-    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Detects whether two forest areas spike together systematically or by coincidence.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
-      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Region A</label>
-        <select class="fw" id="cross-a" style="margin:0"></select></div>
-      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Region B</label>
-        <select class="fw" id="cross-b" style="margin:0"></select></div>
+    <h3 class="sect">Cross-Region Co-Spike Detection</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Are two areas spiking together systematically, or by coincidence?</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <div><label style="font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px">Region A</label><select class="fw" id="cross-a" style="margin:0"></select></div>
+      <div><label style="font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px">Region B</label><select class="fw" id="cross-b" style="margin:0"></select></div>
       <button class="skill-btn" id="run-cross-btn">🔍 Analyse</button>
     </div>
     <div id="cross-out" style="display:none">
-      <div class="card" style="background:#fdf9f5;margin-top:10px">
-        <p id="cross-interp" style="font-size:13.5px;line-height:1.65;margin-bottom:10px"></p>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Co-spike years (both areas ≥1.3× own mean ha):</div>
-        <div id="cross-cospikes" style="margin-bottom:10px"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Spike years — A</div><div id="cross-sa" style="font-size:12px"></div></div>
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Spike years — B</div><div id="cross-sb" style="font-size:12px"></div></div>
+      <div class="card" style="background:#fdf9f5">
+        <p id="cross-interp" style="font-size:13.5px;line-height:1.65;margin-bottom:12px"></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12.5px">
+          <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Co-spike years</div><div id="cross-cospikes"></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Spikes — A</div><div id="cross-sa" style="font-size:12px"></div></div>
+            <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Spikes — B</div><div id="cross-sb" style="font-size:12px"></div></div>
+          </div>
         </div>
-        <div class="nullnote" style="margin-top:10px">Co-spike = region annual ha ≥ 1.3× its own 20-yr mean. Associative only — no causal claim.</div>
+        <div class="nullnote" style="margin-top:10px">Associative — no causal claim. Co-spike = region annual ha ≥ 1.3× its own 20-yr mean.</div>
       </div>
     </div>
   </div>
@@ -209,21 +295,44 @@ select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-ra
 <!-- ANOMALY -->
 <div class="tabpanel" id="tab-anomaly">
   <div class="card">
-    <h3 class="sect">Anomaly Characterisation — Any Year 2006–2025</h3>
-    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Reads across fire count, hectares, driver regions, and size distribution simultaneously.</p>
-    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px">
-      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Year</label>
-        <select class="fw" id="anomaly-year" style="margin:0"></select></div>
+    <h3 class="sect">Anomaly Characterisation</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Reads across fire count, hectares, and driver regions simultaneously for any year.</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <div><label style="font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px">Year</label><select class="fw" id="anomaly-year" style="margin:0"></select></div>
       <button class="skill-btn" id="run-anomaly-btn">📊 Characterise</button>
     </div>
     <div id="anomaly-out" style="display:none">
-      <div class="card" style="background:#fdf9f5;margin-top:8px">
+      <div class="card" style="background:#fdf9f5">
         <p id="anomaly-char" style="font-size:13.5px;line-height:1.65;margin-bottom:12px"></p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Driver regions (≥2× own mean ha)</div><div id="anomaly-drivers" style="font-size:13px"></div></div>
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Ambient regions (above mean)</div><div id="anomaly-ambient" style="font-size:13px"></div></div>
+          <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Driver regions (≥2× own mean)</div><div id="anomaly-drivers" style="font-size:13px"></div></div>
+          <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Ambient (above mean)</div><div id="anomaly-ambient" style="font-size:13px"></div></div>
         </div>
-        <div class="nullnote" style="margin-top:10px">FPA-only. Mutual Aid excluded. Associative — no causal claim.</div>
+        <div class="nullnote" style="margin-top:10px">FPA-only. Associative — no causal claim.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSISTANT -->
+<div class="tabpanel" id="tab-assistant">
+  <div class="card">
+    <div class="api-key-bar">
+      <div style="font-weight:600;font-size:13px">🤖 Analyst Assistant</div>
+      <div style="flex:1;min-width:200px">
+        <input type="password" id="api-key-input" placeholder="Paste your Claude API key (sk-ant-…) — stored only in your browser">
+      </div>
+      <button class="skill-btn sec" id="api-key-save" style="padding:5px 12px;font-size:12px">Save Key</button>
+      <div class="status" id="api-key-status">No key — using rule-based fallback</div>
+    </div>
+    <div class="chat-region-bar">
+      Asking about: <select id="chat-region-sel"></select>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea id="chat-q" rows="1" placeholder="Ask about any forest area…"></textarea>
+        <button id="chat-send">↑</button>
       </div>
     </div>
   </div>
@@ -231,52 +340,61 @@ select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-ra
 
 <!-- OVERRIDE LOG -->
 <div class="tabpanel" id="tab-log">
-  <div class="card" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:14px">
     <h3 class="sect">Override Log — Immutable Audit Trail</h3>
-    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Any change to a flag, threshold, or recommendation must be logged here. Entries are stored in your browser and cannot be edited or deleted.</p>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Every change to a flag, threshold, or recommendation must be logged here. Stored in your browser.</p>
     <div id="log-entries"></div>
     <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
-    <h3 class="sect">Add Override Entry</h3>
+    <h3 class="sect">Add Entry</h3>
     <div class="ovr-form">
       <input type="text" id="log-analyst" placeholder="Analyst name *">
       <input type="text" id="log-session" placeholder="Session / date *">
       <input type="text" id="log-field" placeholder="Changed field (e.g. flag_h High Level, threshold 1.3×→1.5×) *">
       <input type="text" id="log-original" placeholder="Original flag / value *">
-      <textarea id="log-reason" placeholder="Reason (minimum 10 characters) *"></textarea>
-      <button class="skill-btn" id="log-submit">Submit Override Entry</button>
+      <textarea id="log-reason" placeholder="Reason — minimum 10 characters *"></textarea>
+      <button class="skill-btn" id="log-submit">Submit Entry</button>
       <div id="log-alert" style="display:none"></div>
     </div>
   </div>
 </div>
 
-</div>
-
+</div><!-- .wrap -->
 <script>
-// ── Embedded data ──────────────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────────────────
 const DATA = {"province":{"total_fires":27828,"total_ha":7298421,"median_ha":0.02,"top1_share":97.0,"human_pct":60.7,"lightning_pct":35.0,"annual_count":{"2006":1954,"2007":1348,"2008":1712,"2009":1710,"2010":1840,"2011":1218,"2012":1568,"2013":1226,"2014":1470,"2015":1898,"2016":1376,"2017":1244,"2018":1279,"2019":1005,"2020":723,"2021":1342,"2022":1276,"2023":1132,"2024":1230,"2025":1277},"annual_ha":{"2006":118762,"2007":103669,"2008":20787,"2009":66947,"2010":81224,"2011":806055,"2012":385658,"2013":19576,"2014":23705,"2015":466330,"2016":507134,"2017":49130,"2018":54883,"2019":791838,"2020":3274,"2021":54089,"2022":131272,"2023":2217295,"2024":714874,"2025":681920}},"regions":{"Peace River":{"count":2522,"pct":9.1,"total_ha":256092,"median_ha":0.07,"p90_ha":2.4,"lightning_pct":46.9,"human_pct":47.9,"causes":[{"cause":"Lightning","n":1184,"pct":46.9},{"cause":"Resident","n":417,"pct":16.5},{"cause":"Agriculture Industry","n":244,"pct":9.7},{"cause":"Power Line Industry","n":157,"pct":6.2},{"cause":"Forest Industry","n":141,"pct":5.6},{"cause":"Undetermined","n":121,"pct":4.8},{"cause":"Recreation","n":118,"pct":4.7},{"cause":"Incendiary","n":45,"pct":1.8},{"cause":"Oil & Gas Industry","n":26,"pct":1.0},{"cause":"Other Industry","n":20,"pct":0.8},{"cause":"Government","n":18,"pct":0.7},{"cause":"Railroad","n":15,"pct":0.6},{"cause":"Restart","n":8,"pct":0.3},{"cause":"Prescribed Fire","n":8,"pct":0.3}],"annual_count":{"2006":147,"2007":83,"2008":119,"2009":160,"2010":196,"2011":52,"2012":193,"2013":64,"2014":132,"2015":209,"2016":124,"2017":135,"2018":119,"2019":122,"2020":54,"2021":66,"2022":125,"2023":151,"2024":112,"2025":159},"annual_ha":{"2006":9247,"2007":59,"2008":1762,"2009":3752,"2010":414,"2011":696,"2012":15373,"2013":53,"2014":406,"2015":4424,"2016":328,"2017":350,"2018":5344,"2019":55619,"2020":9,"2021":251,"2022":98,"2023":66528,"2024":15591,"2025":75788},"ratio_c":1.12,"ratio_h":4.11,"mean_c":126.1,"mean_h":12805,"rec_c":140.7,"rec_h":52635,"flag_c":false,"flag_h":true,"lag_med":0.8,"lag_cov":63.8,"ac_null":52.1,"tc_null":55.5},"Edson":{"count":2313,"pct":8.3,"total_ha":277884,"median_ha":0.01,"p90_ha":0.8,"lightning_pct":27.5,"human_pct":62.3,"causes":[{"cause":"Lightning","n":636,"pct":27.5},{"cause":"Recreation","n":422,"pct":18.2},{"cause":"Resident","n":370,"pct":16.0},{"cause":"Undetermined","n":206,"pct":8.9},{"cause":"Power Line Industry","n":193,"pct":8.3},{"cause":"Forest Industry","n":105,"pct":4.5},{"cause":"Incendiary","n":100,"pct":4.3},{"cause":"Railroad","n":75,"pct":3.2},{"cause":"Oil & Gas Industry","n":70,"pct":3.0},{"cause":"Other Industry","n":47,"pct":2.0},{"cause":"Agriculture Industry","n":43,"pct":1.9},{"cause":"Under Investigation","n":21,"pct":0.9},{"cause":"Government","n":17,"pct":0.7},{"cause":"Restart","n":8,"pct":0.3}],"annual_count":{"2006":285,"2007":99,"2008":147,"2009":137,"2010":143,"2011":110,"2012":65,"2013":85,"2014":96,"2015":126,"2016":90,"2017":93,"2018":122,"2019":67,"2020":61,"2021":175,"2022":110,"2023":89,"2024":114,"2025":99},"annual_ha":{"2006":22793,"2007":28,"2008":61,"2009":1758,"2010":127,"2011":442,"2012":34,"2013":14,"2014":465,"2015":13790,"2016":105,"2017":45,"2018":1187,"2019":199,"2020":9,"2021":831,"2022":59,"2023":234559,"2024":287,"2025":1091},"ratio_c":0.87,"ratio_h":5.66,"mean_c":115.7,"mean_h":13894,"rec_c":100.7,"rec_h":78646,"flag_c":false,"flag_h":true,"lag_med":0.6,"lag_cov":54.3,"ac_null":37.8,"tc_null":41.9},"Calgary":{"count":4442,"pct":16.0,"total_ha":5179,"median_ha":0.01,"p90_ha":0.1,"lightning_pct":4.1,"human_pct":94.1,"causes":[{"cause":"Recreation","n":3498,"pct":78.7},{"cause":"Resident","n":392,"pct":8.8},{"cause":"Lightning","n":184,"pct":4.1},{"cause":"Incendiary","n":141,"pct":3.2},{"cause":"Undetermined","n":72,"pct":1.6},{"cause":"Power Line Industry","n":56,"pct":1.3},{"cause":"Railroad","n":27,"pct":0.6},{"cause":"Forest Industry","n":25,"pct":0.6},{"cause":"Other Industry","n":22,"pct":0.5},{"cause":"Oil & Gas Industry","n":10,"pct":0.2},{"cause":"Prescribed Fire","n":4,"pct":0.1},{"cause":"Under Investigation","n":4,"pct":0.1},{"cause":"Agriculture Industry","n":3,"pct":0.1},{"cause":"Restart","n":2,"pct":0.0},{"cause":"Government","n":2,"pct":0.0}],"annual_count":{"2006":234,"2007":235,"2008":206,"2009":262,"2010":315,"2011":240,"2012":408,"2013":377,"2014":334,"2015":232,"2016":233,"2017":265,"2018":166,"2019":119,"2020":218,"2021":173,"2022":168,"2023":90,"2024":92,"2025":75},"annual_ha":{"2006":27,"2007":59,"2008":55,"2009":35,"2010":29,"2011":252,"2012":50,"2013":7,"2014":9,"2015":102,"2016":60,"2017":1659,"2018":112,"2019":43,"2020":2447,"2021":84,"2022":16,"2023":6,"2024":65,"2025":62},"ratio_c":0.39,"ratio_h":0.17,"mean_c":222.1,"mean_h":259,"rec_c":85.7,"rec_h":44,"flag_c":false,"flag_h":false,"lag_med":0.0,"lag_cov":81.8,"ac_null":5.9,"tc_null":9.0},"Lac La Biche":{"count":3515,"pct":12.6,"total_ha":206986,"median_ha":0.1,"p90_ha":2.1,"lightning_pct":26.8,"human_pct":69.5,"causes":[{"cause":"Incendiary","n":990,"pct":28.2},{"cause":"Lightning","n":941,"pct":26.8},{"cause":"Resident","n":783,"pct":22.3},{"cause":"Recreation","n":313,"pct":8.9},{"cause":"Undetermined","n":126,"pct":3.6},{"cause":"Power Line Industry","n":117,"pct":3.3},{"cause":"Agriculture Industry","n":85,"pct":2.4},{"cause":"Other Industry","n":58,"pct":1.7},{"cause":"Oil & Gas Industry","n":32,"pct":0.9},{"cause":"Government","n":29,"pct":0.8},{"cause":"Forest Industry","n":18,"pct":0.5},{"cause":"Railroad","n":14,"pct":0.4},{"cause":"Prescribed Fire","n":3,"pct":0.1},{"cause":"Restart","n":3,"pct":0.1},{"cause":"Under Investigation","n":3,"pct":0.1}],"annual_count":{"2006":183,"2007":151,"2008":184,"2009":202,"2010":184,"2011":216,"2012":175,"2013":145,"2014":139,"2015":236,"2016":121,"2017":66,"2018":197,"2019":146,"2020":103,"2021":215,"2022":200,"2023":194,"2024":204,"2025":254},"annual_ha":{"2006":980,"2007":277,"2008":611,"2009":8399,"2010":338,"2011":1315,"2012":1892,"2013":270,"2014":484,"2015":62303,"2016":331,"2017":108,"2018":13850,"2019":1822,"2020":56,"2021":1481,"2022":2225,"2023":7935,"2024":23929,"2025":78379},"ratio_c":1.24,"ratio_h":3.55,"mean_c":175.8,"mean_h":10349,"rec_c":217.3,"rec_h":36748,"flag_c":false,"flag_h":true,"lag_med":0.5,"lag_cov":74.6,"ac_null":30.6,"tc_null":54.5},"Rocky":{"count":1991,"pct":7.2,"total_ha":124873,"median_ha":0.01,"p90_ha":1.0,"lightning_pct":24.8,"human_pct":70.1,"causes":[{"cause":"Recreation","n":540,"pct":27.1},{"cause":"Lightning","n":493,"pct":24.8},{"cause":"Resident","n":416,"pct":20.9},{"cause":"Power Line Industry","n":182,"pct":9.1},{"cause":"Incendiary","n":104,"pct":5.2},{"cause":"Undetermined","n":95,"pct":4.8},{"cause":"Oil & Gas Industry","n":72,"pct":3.6},{"cause":"Forest Industry","n":45,"pct":2.3},{"cause":"Agriculture Industry","n":14,"pct":0.7},{"cause":"Government","n":12,"pct":0.6},{"cause":"Other Industry","n":8,"pct":0.4},{"cause":"Restart","n":6,"pct":0.3},{"cause":"Prescribed Fire","n":3,"pct":0.2},{"cause":"Under Investigation","n":1,"pct":0.1}],"annual_count":{"2006":200,"2007":120,"2008":122,"2009":173,"2010":76,"2011":93,"2012":98,"2013":101,"2014":82,"2015":141,"2016":96,"2017":83,"2018":58,"2019":42,"2020":59,"2021":113,"2022":78,"2023":81,"2024":85,"2025":90},"annual_ha":{"2006":1121,"2007":47,"2008":77,"2009":846,"2010":58,"2011":739,"2012":408,"2013":865,"2014":9003,"2015":95,"2016":80,"2017":1700,"2018":2769,"2019":20,"2020":17,"2021":321,"2022":557,"2023":92831,"2024":13103,"2025":216},"ratio_c":0.86,"ratio_h":5.67,"mean_c":99.5,"mean_h":6244,"rec_c":85.3,"rec_h":35383,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":59.8,"ac_null":30.2,"tc_null":35.8},"Whitecourt":{"count":1383,"pct":5.0,"total_ha":82174,"median_ha":0.02,"p90_ha":1.1,"lightning_pct":34.8,"human_pct":60.4,"causes":[{"cause":"Lightning","n":481,"pct":34.8},{"cause":"Recreation","n":206,"pct":14.9},{"cause":"Resident","n":191,"pct":13.8},{"cause":"Power Line Industry","n":184,"pct":13.3},{"cause":"Oil & Gas Industry","n":60,"pct":4.3},{"cause":"Undetermined","n":59,"pct":4.3},{"cause":"Forest Industry","n":56,"pct":4.0},{"cause":"Incendiary","n":49,"pct":3.5},{"cause":"Other Industry","n":46,"pct":3.3},{"cause":"Agriculture Industry","n":28,"pct":2.0},{"cause":"Government","n":12,"pct":0.9},{"cause":"Restart","n":5,"pct":0.4},{"cause":"Railroad","n":3,"pct":0.2},{"cause":"Under Investigation","n":3,"pct":0.2}],"annual_count":{"2006":114,"2007":60,"2008":82,"2009":118,"2010":79,"2011":55,"2012":46,"2013":49,"2014":59,"2015":97,"2016":39,"2017":29,"2018":55,"2019":46,"2020":40,"2021":127,"2022":90,"2023":59,"2024":71,"2025":68},"annual_ha":{"2006":1874,"2007":47,"2008":66,"2009":4652,"2010":212,"2011":4690,"2012":23,"2013":116,"2014":39,"2015":70,"2016":671,"2017":11,"2018":14,"2019":67,"2020":10,"2021":55,"2022":142,"2023":66578,"2024":30,"2025":2804},"ratio_c":0.95,"ratio_h":5.63,"mean_c":69.2,"mean_h":4109,"rec_c":66.0,"rec_h":23137,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":59.4,"ac_null":41.0,"tc_null":45.8},"Grande Prairie":{"count":1885,"pct":6.8,"total_ha":154590,"median_ha":0.02,"p90_ha":1.3,"lightning_pct":32.4,"human_pct":62.6,"causes":[{"cause":"Lightning","n":611,"pct":32.4},{"cause":"Resident","n":440,"pct":23.3},{"cause":"Recreation","n":243,"pct":12.9},{"cause":"Power Line Industry","n":129,"pct":6.8},{"cause":"Oil & Gas Industry","n":101,"pct":5.4},{"cause":"Agriculture Industry","n":92,"pct":4.9},{"cause":"Undetermined","n":69,"pct":3.7},{"cause":"Incendiary","n":66,"pct":3.5},{"cause":"Forest Industry","n":48,"pct":2.5},{"cause":"Other Industry","n":46,"pct":2.4},{"cause":"Under Investigation","n":15,"pct":0.8},{"cause":"Government","n":13,"pct":0.7},{"cause":"Restart","n":10,"pct":0.5},{"cause":"Railroad","n":2,"pct":0.1}],"annual_count":{"2006":216,"2007":91,"2008":169,"2009":134,"2010":158,"2011":61,"2012":80,"2013":51,"2014":73,"2015":91,"2016":75,"2017":50,"2018":42,"2019":41,"2020":49,"2021":105,"2022":87,"2023":79,"2024":107,"2025":126},"annual_ha":{"2006":568,"2007":8,"2008":195,"2009":90,"2010":976,"2011":80,"2012":25,"2013":513,"2014":4329,"2015":222,"2016":137,"2017":10,"2018":20,"2019":10,"2020":46,"2021":134,"2022":128,"2023":140905,"2024":389,"2025":5804},"ratio_c":1.1,"ratio_h":6.34,"mean_c":94.2,"mean_h":7729,"rec_c":104.0,"rec_h":49033,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":53.0,"ac_null":37.4,"tc_null":41.2},"High Level":{"count":3970,"pct":14.3,"total_ha":2328337,"median_ha":0.2,"p90_ha":17.7,"lightning_pct":47.0,"human_pct":51.3,"causes":[{"cause":"Lightning","n":1865,"pct":47.0},{"cause":"Resident","n":752,"pct":18.9},{"cause":"Incendiary","n":698,"pct":17.6},{"cause":"Agriculture Industry","n":189,"pct":4.8},{"cause":"Power Line Industry","n":138,"pct":3.5},{"cause":"Recreation","n":137,"pct":3.5},{"cause":"Undetermined","n":61,"pct":1.5},{"cause":"Other Industry","n":36,"pct":0.9},{"cause":"Forest Industry","n":31,"pct":0.8},{"cause":"Government","n":27,"pct":0.7},{"cause":"Oil & Gas Industry","n":26,"pct":0.7},{"cause":"Restart","n":7,"pct":0.2},{"cause":"Under Investigation","n":2,"pct":0.1},{"cause":"Railroad","n":1,"pct":0.0}],"annual_count":{"2006":168,"2007":232,"2008":262,"2009":203,"2010":239,"2011":144,"2012":250,"2013":166,"2014":247,"2015":333,"2016":256,"2017":303,"2018":247,"2019":175,"2020":49,"2021":88,"2022":120,"2023":175,"2024":185,"2025":128},"annual_ha":{"2006":4474,"2007":14509,"2008":2511,"2009":9008,"2010":4795,"2011":11145,"2012":341418,"2013":16426,"2014":1662,"2015":225866,"2016":5875,"2017":26186,"2018":22907,"2019":410594,"2020":133,"2021":2962,"2022":22137,"2023":813468,"2024":333316,"2025":58945},"ratio_c":0.82,"ratio_h":3.45,"mean_c":198.5,"mean_h":116417,"rec_c":162.7,"rec_h":401910,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":78.7,"ac_null":48.8,"tc_null":64.6},"Slave Lake":{"count":3739,"pct":13.4,"total_ha":1385606,"median_ha":0.1,"p90_ha":3.6,"lightning_pct":48.9,"human_pct":45.2,"causes":[{"cause":"Lightning","n":1827,"pct":48.9},{"cause":"Resident","n":810,"pct":21.7},{"cause":"Power Line Industry","n":317,"pct":8.5},{"cause":"Undetermined","n":198,"pct":5.3},{"cause":"Incendiary","n":187,"pct":5.0},{"cause":"Recreation","n":182,"pct":4.9},{"cause":"Oil & Gas Industry","n":45,"pct":1.2},{"cause":"Forest Industry","n":42,"pct":1.1},{"cause":"Other Industry","n":35,"pct":0.9},{"cause":"Government","n":32,"pct":0.9},{"cause":"Agriculture Industry","n":28,"pct":0.7},{"cause":"Under Investigation","n":15,"pct":0.4},{"cause":"Railroad","n":12,"pct":0.3},{"cause":"Restart","n":8,"pct":0.2},{"cause":"Prescribed Fire","n":1,"pct":0.0}],"annual_count":{"2006":233,"2007":163,"2008":269,"2009":236,"2010":342,"2011":160,"2012":158,"2013":95,"2014":204,"2015":265,"2016":219,"2017":126,"2018":166,"2019":167,"2020":69,"2021":167,"2022":181,"2023":147,"2024":156,"2025":216},"annual_ha":{"2006":13028,"2007":131,"2008":406,"2009":7899,"2010":34143,"2011":134731,"2012":785,"2013":39,"2014":4418,"2015":22379,"2016":2261,"2017":17711,"2018":5667,"2019":284793,"2020":278,"2021":6303,"2022":2082,"2023":430020,"2024":39287,"2025":379245},"ratio_c":0.93,"ratio_h":4.08,"mean_c":186.9,"mean_h":69280,"rec_c":173.0,"rec_h":282851,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":73.1,"ac_null":54.8,"tc_null":59.4},"Fort McMurray":{"count":2068,"pct":7.4,"total_ha":2476700,"median_ha":0.17,"p90_ha":46.9,"lightning_pct":73.7,"human_pct":23.0,"causes":[{"cause":"Lightning","n":1524,"pct":73.7},{"cause":"Recreation","n":212,"pct":10.3},{"cause":"Power Line Industry","n":70,"pct":3.4},{"cause":"Resident","n":69,"pct":3.3},{"cause":"Undetermined","n":57,"pct":2.8},{"cause":"Oil & Gas Industry","n":47,"pct":2.3},{"cause":"Incendiary","n":32,"pct":1.5},{"cause":"Other Industry","n":23,"pct":1.1},{"cause":"Government","n":13,"pct":0.6},{"cause":"Restart","n":8,"pct":0.4},{"cause":"Forest Industry","n":8,"pct":0.4},{"cause":"Under Investigation","n":3,"pct":0.1},{"cause":"Railroad","n":1,"pct":0.0},{"cause":"Agriculture Industry","n":1,"pct":0.0}],"annual_count":{"2006":174,"2007":114,"2008":152,"2009":85,"2010":108,"2011":87,"2012":95,"2013":93,"2014":104,"2015":168,"2016":123,"2017":94,"2018":107,"2019":80,"2020":21,"2021":113,"2022":117,"2023":67,"2024":104,"2025":62},"annual_ha":{"2006":64650,"2007":88503,"2008":15044,"2009":30508,"2010":40132,"2011":651964,"2012":25650,"2013":1272,"2014":2888,"2015":137078,"2016":497286,"2017":1350,"2018":3013,"2019":38671,"2020":269,"2021":41668,"2022":103828,"2023":364465,"2024":288877,"2025":79585},"ratio_c":0.75,"ratio_h":1.97,"mean_c":103.4,"mean_h":123835,"rec_c":77.7,"rec_h":244309,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":88.5,"ac_null":77.0,"tc_null":79.2}},"meta":{"recent":["2023","2024","2025"],"threshold":1.3,"baseline":"20-yr mean annual","scope":"FPA only. Mutual Aid fires outside the Forest Protection Area are excluded. Any provincial total is an FPA total, not all-Alberta."}};
 
-// ── Cause colours ──────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
+const fmtHa = h => h>=1e6?(h/1e6).toFixed(2)+'M ha':h>=1e3?(h/1e3).toFixed(1)+'k ha':h.toFixed(0)+' ha';
+const fmtN  = n => n.toLocaleString();
+const getLever = rd => rd.lightning_pct>=55?'detection':rd.human_pct>=75?'prevention':'both';
+const LEVER_LBL = {detection:'Detection & suppression reach',prevention:'Prevention (bans, education, restrictions)',both:'Both prevention AND detection/suppression'};
+const LEVER_ICON = {detection:'⚡',prevention:'🚫',both:'⚡🚫'};
+const tierCls = f => f>=90?'A':f>=60?'B':f>=30?'C':'D';
+const tierLbl = f => ({A:'High',B:'Moderate',C:'Provisional',D:'Cannot assess'})[tierCls(f)];
+
 const CC = {Lightning:'#2f6fa8',Resident:'#d98324',Incendiary:'#a93226',Recreation:'#5a9e6f',
   'Power Line Industry':'#7b5ea7','Agriculture Industry':'#c07030','Forest Industry':'#4a8a6f',
   'Oil & Gas Industry':'#8a6030',Undetermined:'#b3a896','Under Investigation':'#c9bdac',
   Restart:'#d0c8bc',Government:'#7a9abc',Railroad:'#9a8a7c','Prescribed Fire':'#6aaa50',
   'Other Industry':'#a09080'};
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-const fmtHa = ha => ha>=1e6?(ha/1e6).toFixed(2)+'M ha':ha>=1e3?(ha/1e3).toFixed(1)+'k ha':ha.toFixed(0)+' ha';
-const getLever = rd => rd.lightning_pct>=55?'detection':rd.human_pct>=75?'prevention':'both';
-const LEVER_LBL = {detection:'Detection & suppression reach',prevention:'Prevention (bans, education, restrictions)',both:'Both prevention AND detection/suppression'};
-const tierLabel = f => f>=90?'A: High':f>=60?'B: Moderate':f>=30?'C: Provisional':'D: Cannot assess';
-const tierCls   = f => f>=90?'A':f>=60?'B':f>=30?'C':'D';
+function ratioClass(r){ return r>=1.3?'ratio-above':r<=0.7?'ratio-below':'ratio-near'; }
+function ratioBg(r){
+  if(r>=4) return '#fbeae8';
+  if(r>=2) return '#fdf0ee';
+  if(r>=1.3) return '#fef5f4';
+  if(r>=0.7) return '#fdfcf8';
+  return '#f4faf5';
+}
 
-// ── Header ─────────────────────────────────────────────────────────────────
-(function buildHeader(){
-  const p = DATA.province;
-  document.getElementById('hdr-right').textContent =
-    `${p.total_fires.toLocaleString()} fires · ${(p.total_ha/1e6).toFixed(2)}M ha · FPA 2006–2025`;
-  const n = Object.values(DATA.regions).filter(r=>r.flag_h||r.flag_c).length;
-  document.getElementById('flag-badge').textContent = `⚠ ${n} of 10 areas flagged on hectares or count`;
+// ── Header ────────────────────────────────────────────────────────────────
+(function(){
+  const p=DATA.province;
+  document.getElementById('hdr-fires').textContent = fmtN(p.total_fires);
+  document.getElementById('hdr-ha').textContent = fmtHa(p.total_ha);
   const nH = Object.values(DATA.regions).filter(r=>r.flag_h).length;
+  document.getElementById('hdr-flag').textContent = nH+'/10';
+  document.getElementById('flag-badge').textContent = `⚠ ${nH} of 10 areas flagged on hectares`;
   document.getElementById('hl-title').innerHTML =
     `<b>${nH} of 10</b> forest areas burned ≥1.3× their 20-yr mean — the crisis is in <b>area burned</b>, not fire count`;
   document.getElementById('hl-text').innerHTML =
@@ -285,56 +403,149 @@ const tierCls   = f => f>=90?'A':f>=60?'B':f>=30?'C':'D';
     `<em>FPA-only; cost and forecast out of scope.</em>`;
 })();
 
-// ── Watch List ─────────────────────────────────────────────────────────────
-(function buildWL(){
-  const wl = document.getElementById('watchlist');
-  Object.entries(DATA.regions)
-    .sort((a,b)=>b[1].ratio_h-a[1].ratio_h)
-    .forEach(([name,rd])=>{
-      const el = document.createElement('div');
-      el.className='region-item'+(rd.flag_h?' flag-h':'');
-      el.dataset.region=name;
-      el.innerHTML=`<div class="nm">${name}${rd.flag_h?'<span class="badge badge-h">Ha↑</span>':''}${rd.flag_c?'<span class="badge badge-c">Ct↑</span>':''}</div><div class="rr"><b>${rd.ratio_h.toFixed(2)}×</b><br>ha ratio</div>`;
-      el.addEventListener('click',()=>selectRegion(name));
-      wl.appendChild(el);
-    });
+// ── Scorecard ─────────────────────────────────────────────────────────────
+(function buildScorecard(){
+  const sc = document.getElementById('scorecard');
+  const sorted = Object.entries(DATA.regions).sort((a,b)=>b[1].ratio_h-a[1].ratio_h);
+  sorted.forEach(([name,rd])=>{
+    const lever=getLever(rd), cls=ratioClass(rd.ratio_h);
+    const el=document.createElement('div');
+    el.className=`sc-tile ${cls}`;
+    el.style.background=ratioBg(rd.ratio_h);
+    el.dataset.region=name;
+    el.innerHTML=`
+      <div class="sc-name">${name}${rd.flag_h?'<span class="badge badge-h" style="margin-left:4px;font-size:9px">Ha↑</span>':''}</div>
+      <div class="sc-ratio">${rd.ratio_h.toFixed(2)}×</div>
+      <div class="sc-label">ha ratio · ${fmtHa(rd.total_ha)}</div>
+      <div class="sc-lever" style="background:${lever==='detection'?'#eaf2fa':lever==='prevention'?'#eef5ee':'#fdf3e7'};color:${lever==='detection'?'#2f6fa8':lever==='prevention'?'#3a7d44':'#9a6020'}">${LEVER_ICON[lever]} ${lever}</div>
+      <div class="sc-bar"></div>`;
+    el.addEventListener('click',()=>selectRegion(name));
+    sc.appendChild(el);
+  });
 })();
 
-// ── Region detail ──────────────────────────────────────────────────────────
+// ── Region select ─────────────────────────────────────────────────────────
 function selectRegion(name){
-  document.querySelectorAll('.region-item').forEach(el=>el.classList.toggle('sel',el.dataset.region===name));
+  document.querySelectorAll('.sc-tile').forEach(el=>el.classList.toggle('sel',el.dataset.region===name));
+  // sync chat selector
+  const cs=document.getElementById('chat-region-sel'); if(cs) cs.value=name;
+  renderDetail(name);
+}
+
+function renderDetail(name){
   const rd=DATA.regions[name], p=DATA.province;
-  const acFill=(100-rd.ac_null).toFixed(1), tcFill=(100-rd.tc_null).toFixed(1);
   const lever=getLever(rd);
+  const acFill=(100-rd.ac_null).toFixed(1), tcFill=(100-rd.tc_null).toFixed(1);
   const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const escHtml=escapes.length?escapes.map(([y,ha])=>`<span class="co-year">${y} (${fmtHa(ha)})</span>`).join(' '):'<em style="color:var(--muted)">None on record</em>';
-  const causeHtml=rd.causes.map(c=>{
-    const col=CC[c.cause]||'#b3a896';
-    return `<div class="cause-row"><div class="lbl">${c.cause}</div><div class="track"><div class="bar" style="width:${Math.max(c.pct,0.3)}%;background:${col}"></div></div><div class="pct">${c.pct.toFixed(1)}% <span style="color:#c9bdac">(${c.n.toLocaleString()})</span></div></div>`;
-  }).join('');
+
+  // Sparkline for annual ha
+  const haVals=Object.values(rd.annual_ha), haMax=Math.max(...haVals);
+  const spark=haVals.map(v=>`<div class="bar" style="height:${Math.max(4,v/haMax*32)}px;background:${v>=rd.mean_h*1.3?'var(--fire)':'var(--faint)'}"></div>`).join('');
+
+  // Stacked cause bar
+  const stackBars=rd.causes.map(c=>`<div style="width:${c.pct}%;background:${CC[c.cause]||'#b3a896'}" title="${c.cause}: ${c.pct}% (${fmtN(c.n)})"></div>`).join('');
+  const legendItems=rd.causes.slice(0,7).map(c=>`<span title="${c.pct}% (${fmtN(c.n)})"><span style="background:${CC[c.cause]||'#b3a896'}"></span>${c.cause} ${c.pct}%</span>`).join('');
+
+  // Size visual — log scale line from 0.01 to max_ha, marks at median and p90
+  const logMin=Math.log10(0.01), logMax=Math.log10(Math.max(rd.p90_ha*5,100));
+  const pos = v => ((Math.log10(Math.max(v,0.001))-logMin)/(logMax-logMin)*100).toFixed(1);
+  const medPos=pos(rd.median_ha), p90Pos=pos(rd.p90_ha);
+
+  // Gauge for ha ratio
+  const gaugeMax=8, gaugePct=Math.min(rd.ratio_h/gaugeMax*100,100);
+  const threshPct=(1.3/gaugeMax*100).toFixed(1);
+  const gaugeColor=rd.ratio_h>=1.3?'var(--fire)':rd.ratio_h<=0.7?'var(--ok)':'var(--human)';
 
   document.getElementById('detail-panel').innerHTML=`
-    <h2>${name}</h2>
-    <div class="loc">Forest area · ${rd.count.toLocaleString()} fires 2006–2025 · ${rd.pct}% of FPA total (${p.total_fires.toLocaleString()})</div>
-    <div class="stats">
-      <div class="stat"><div class="v">${rd.count.toLocaleString()}</div><div class="l">Total fires</div><div class="n">${rd.pct}% of ${p.total_fires.toLocaleString()}</div></div>
-      <div class="stat"><div class="v">${fmtHa(rd.total_ha)}</div><div class="l">Total hectares</div><div class="n">FPA-only</div></div>
-      <div class="stat"><div class="v">${rd.median_ha}</div><div class="l">Median (ha)</div><div class="n">p90: ${rd.p90_ha} ha</div></div>
-      <div class="stat"><div class="v" style="color:${rd.flag_h?'var(--flag)':'inherit'}">${rd.ratio_h.toFixed(2)}×</div><div class="l">Ha ratio</div><div class="n">Rec ${fmtHa(rd.rec_h)} / Mean ${fmtHa(rd.mean_h)}</div></div>
-      <div class="stat"><div class="v" style="color:${rd.flag_c?'var(--light)':'inherit'}">${rd.ratio_c.toFixed(2)}×</div><div class="l">Count ratio</div><div class="n">Rec ${Math.round(rd.rec_c)}/yr / Mean ${Math.round(rd.mean_c)}/yr</div></div>
-      <div class="stat"><div class="v">${rd.lag_med}h</div><div class="l">Median lag</div><div class="n">${rd.lag_cov.toFixed(0)}% coverage</div></div>
+    <h2>${name}
+      ${rd.flag_h?`<span class="badge badge-h" style="font-size:12px">Ha ${rd.ratio_h.toFixed(2)}× — above norm</span>`:''}
+      ${rd.flag_c?`<span class="badge badge-c" style="font-size:12px">Count ${rd.ratio_c.toFixed(2)}× — above norm</span>`:''}
+    </h2>
+    <div class="loc">${fmtN(rd.count)} fires 2006–2025 · ${rd.pct}% of FPA total (${fmtN(p.total_fires)}) · ${LEVER_LBL[lever]}</div>
+
+    <div class="kpi-row">
+      <div class="kpi ${rd.flag_h?'flagged':''}">
+        <div class="v">${rd.ratio_h.toFixed(2)}×</div>
+        <div class="l">Ha ratio</div>
+        <div class="n">Rec ${fmtHa(rd.rec_h)} / Mean ${fmtHa(rd.mean_h)}</div>
+      </div>
+      <div class="kpi ${rd.flag_c?'flagged':''}">
+        <div class="v">${rd.ratio_c.toFixed(2)}×</div>
+        <div class="l">Count ratio</div>
+        <div class="n">Rec ${Math.round(rd.rec_c)}/yr / Mean ${Math.round(rd.mean_c)}/yr</div>
+      </div>
+      <div class="kpi">
+        <div class="v">${fmtHa(rd.total_ha)}</div>
+        <div class="l">Total ha (FPA)</div>
+        <div class="n">${fmtN(rd.count)} fires</div>
+      </div>
+      <div class="kpi">
+        <div class="v">${rd.median_ha}</div>
+        <div class="l">Median ha</div>
+        <div class="n">p90: ${rd.p90_ha} ha</div>
+      </div>
+      <div class="kpi">
+        <div class="v">${rd.lag_med}h</div>
+        <div class="l">Median lag</div>
+        <div class="n">${rd.lag_cov.toFixed(0)}% coverage</div>
+      </div>
     </div>
-    ${rd.flag_h||rd.flag_c?`<div class="nullnote">⚠ Above-norm: ${rd.flag_h?'hectares ratio '+rd.ratio_h.toFixed(2)+'× ':''}${rd.flag_c?'count ratio '+rd.ratio_c.toFixed(2)+'×':''}</div>`:'<div class="oknote">✓ Near or below 20-yr norm on both count and hectares</div>'}
-    <div style="margin:14px 0 6px">
-      <h3 class="sect">Cause Mix (GENERAL_CAUSE · fully populated)</h3>
-      <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px">Human-related (${rd.human_pct}%) = all causes except Lightning, Undetermined, Under Investigation, Restart. Lightning: ${rd.lightning_pct}%. <b>Planning lever: ${LEVER_LBL[lever]}</b></div>
-      ${causeHtml}
+
+    <!-- Ha ratio gauge -->
+    <div class="gauge-wrap">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+        <span>Ha ratio vs 20-yr mean</span><span>${rd.ratio_h.toFixed(2)}× (threshold 1.3×)</span>
+      </div>
+      <div class="gauge-track">
+        <div class="gauge-fill" style="width:${gaugePct}%;background:${gaugeColor}"></div>
+        <div class="gauge-threshold" style="left:${threshPct}%" title="1.3× flag threshold"></div>
+      </div>
+      <div class="gauge-labels"><span>0×</span><span>1.3× flag</span><span>8×</span></div>
     </div>
-    <div class="nullnote">ACTIVITY_CLASS ${acFill}% filled · TRUE_CAUSE ${tcFill}% filled · cause-detail breakdown is ${parseFloat(acFill)<50||parseFloat(tcFill)<50?'<b>provisional (below 50%)</b>':'moderate confidence'}</div>
-    <div style="margin-top:14px"><h3 class="sect">Escape Years (≥2× region mean of ${fmtHa(rd.mean_h)})</h3><div style="margin-top:5px">${escHtml}</div></div>
-    <div class="skill-panel">
-      <h3 class="sect" style="margin-top:16px">AI Skills</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+    <!-- Annual sparkline -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Annual hectares 2006–2025 (red = above norm)</div>
+      <div class="sparkline">${spark}</div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--faint)"><span>2006</span><span>2025</span></div>
+    </div>
+
+    <!-- Cause mix stacked bar -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+        <span>Cause mix — GENERAL_CAUSE (N=${fmtN(rd.count)}, fully populated)</span>
+        <span>⚡ ${rd.lightning_pct}% lightning · 👤 ${rd.human_pct}% human-related</span>
+      </div>
+      <div class="cause-stack">${stackBars}</div>
+      <div class="cause-legend">${legendItems}</div>
+      <div class="nullnote" style="margin-top:6px">Human-related = all causes except Lightning, Undetermined, Under Investigation, Restart. Planning lever: <b>${LEVER_LBL[lever]}</b>. ACTIVITY_CLASS ${acFill}% filled · TRUE_CAUSE ${tcFill}% filled.</div>
+    </div>
+
+    <!-- Size visual -->
+    <div class="size-visual">
+      <h4>Fire size distribution (log scale)</h4>
+      <div style="font-size:12px;color:#5b5147;margin-bottom:8px">
+        The median fire is tiny (<b>${rd.median_ha} ha</b>) — 90% of fires stay under <b>${rd.p90_ha} ha</b>. Yet total burned = <b>${fmtHa(rd.total_ha)}</b>. This skew is why a bare mean is never shown.
+      </div>
+      <div class="size-track">
+        <div class="size-marker" style="left:${medPos}%">${rd.median_ha} ha<br>median</div>
+        <div class="size-marker" style="left:${p90Pos}%">${rd.p90_ha} ha<br>p90</div>
+        <div class="size-dot" style="left:${medPos}%;background:#2f6fa8"></div>
+        <div class="size-dot" style="left:${p90Pos}%;background:var(--fire)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--faint);margin-top:8px"><span>← smaller (0.01 ha)</span><span>larger →</span></div>
+    </div>
+
+    <!-- Escape years -->
+    <div style="margin-top:14px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:5px">Escape years (≥2× region mean of ${fmtHa(rd.mean_h)})</div>
+      ${escapes.length?escapes.map(([y,ha])=>`<span class="co-year">${y} (${fmtHa(ha)})</span>`).join(' '):'<em style="color:var(--muted);font-size:12px">None on record</em>'}
+    </div>
+
+    <!-- AI skills -->
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <h3 class="sect">AI Skills</h3>
+      <div class="skill-btns">
         <button class="skill-btn" onclick="runExplain('${name}')">💡 Explain Flag</button>
         <button class="skill-btn sec" onclick="runConf('${name}')">🎯 Confidence Tiers</button>
         <button class="skill-btn sec" onclick="runNarr('${name}')">📄 Director Brief</button>
@@ -344,133 +555,105 @@ function selectRegion(name){
       <div class="skill-output" id="sk-narr"></div>
     </div>`;
 }
-selectRegion(Object.keys(DATA.regions)[0]);
+selectRegion('Grande Prairie');
 
-// ── Skill: Explain Flag ────────────────────────────────────────────────────
+// ── Skills ────────────────────────────────────────────────────────────────
 function runExplain(name){
-  const rd=DATA.regions[name], thresh=DATA.meta.threshold;
-  const lever=getLever(rd), acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
+  const rd=DATA.regions[name], lever=getLever(rd);
+  const acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
   const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const triggered=[];
-  if(rd.flag_h) triggered.push(`hectares ratio ${rd.ratio_h.toFixed(2)}× (recent 3-yr mean ${fmtHa(rd.rec_h)} vs 20-yr mean ${fmtHa(rd.mean_h)})`);
-  if(rd.flag_c) triggered.push(`fire count ratio ${rd.ratio_c.toFixed(2)}× (recent ${Math.round(rd.rec_c)}/yr vs 20-yr mean ${Math.round(rd.mean_c)}/yr)`);
+  if(rd.flag_h) triggered.push(`hectares ratio ${rd.ratio_h.toFixed(2)}× (recent 3-yr ${fmtHa(rd.rec_h)} vs 20-yr mean ${fmtHa(rd.mean_h)})`);
+  if(rd.flag_c) triggered.push(`count ratio ${rd.ratio_c.toFixed(2)}×`);
   const parts=[];
-  parts.push(triggered.length?`<b>Flag:</b> ${name} is above the ${thresh}× norm threshold on ${triggered.join(' and ')}.`:`<b>Status:</b> ${name} is near or below its 20-yr norms (count ${rd.ratio_c.toFixed(2)}×, hectares ${rd.ratio_h.toFixed(2)}×).`);
-  parts.push(escapes.length?`<b>Escape years</b> (≥2× region mean of ${fmtHa(rd.mean_h)}): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.`:'No escape years on record.');
-  parts.push(`<b>Cause mix:</b> Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}% of ${rd.count.toLocaleString()} fires. Human-related = all causes except Lightning, Undetermined, Under Investigation, Restart. <b>Planning lever:</b> ${LEVER_LBL[lever]}.`);
-  parts.push(`<b>Data quality:</b> ACTIVITY_CLASS ${acFill.toFixed(1)}% filled (tier ${tierCls(acFill)}: ${tierLabel(acFill)}); TRUE_CAUSE ${tcFill.toFixed(1)}% filled (tier ${tierCls(tcFill)}: ${tierLabel(tcFill)}).`+(acFill<50||tcFill<50?' Note: fill below 50% — limited reliability.':''));
-  parts.push(`<b>Response time:</b> Median REPORTED→FIRE_FIGHTING_START lag ${rd.lag_med}h (on ${rd.lag_cov.toFixed(0)}% of fires with the field filled${rd.lag_cov<50?' — limited reliability':''}).`);
-  parts.push('This synthesis surfaces the signal. The analyst makes and owns the deployment/prevention recommendation. Any override logs who, the original flag, and why. FPA-only; cost and forecast out of scope.');
+  parts.push(triggered.length?`<b>Flag:</b> ${name} is above the 1.3× norm on ${triggered.join(' and ')}.`:`<b>Status:</b> ${name} is near or below 20-yr norms (ha ${rd.ratio_h.toFixed(2)}×, count ${rd.ratio_c.toFixed(2)}×).`);
+  if(escapes.length) parts.push(`<b>Escape years</b> (≥2× region mean ${fmtHa(rd.mean_h)}): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.`);
+  parts.push(`<b>Cause mix:</b> Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}% (human = all except Lightning/Undetermined/Under Investigation/Restart). <b>Planning lever: ${LEVER_LBL[lever]}.</b>`);
+  parts.push(`<b>Data quality:</b> ACTIVITY_CLASS ${acFill.toFixed(0)}% filled (tier ${tierCls(acFill)}: ${tierLbl(acFill)}); TRUE_CAUSE ${tcFill.toFixed(0)}% filled (tier ${tierCls(tcFill)}: ${tierLbl(tcFill)}).`+(acFill<50?' ⚠ Below 50% — provisional.':''));
+  parts.push(`<b>Response time:</b> Median lag ${rd.lag_med}h on ${rd.lag_cov.toFixed(0)}% of fires (REPORTED→FIRE_FIGHTING_START).`);
+  parts.push(`<em>The analyst makes and owns the recommendation. Any override must be logged. FPA-only; cost and forecast out of scope.</em>`);
   const el=document.getElementById('sk-explain');
-  el.innerHTML=`<h3>Explain Flag — ${name}</h3>${parts.map(p=>`<p style="margin-bottom:10px">${p}</p>`).join('')}`;
+  el.innerHTML=`<h3 style="font-size:13.5px;margin-bottom:10px">Explain Flag — ${name}</h3>${parts.map(p=>`<p style="margin-bottom:9px">${p}</p>`).join('')}`;
   el.className='skill-output show';
 }
-
-// ── Skill: Confidence ──────────────────────────────────────────────────────
 function runConf(name){
   const rd=DATA.regions[name];
-  const fields=[
-    {field:'ACTIVITY_CLASS',fill:(100-rd.ac_null).toFixed(1),note:'Cause-activity breakdown'},
-    {field:'TRUE_CAUSE',fill:(100-rd.tc_null).toFixed(1),note:'True cause detail'},
-    {field:'Response time (lag)',fill:rd.lag_cov.toFixed(1),note:'REPORTED→FIRE_FIGHTING_START'},
-  ];
-  let html=`<h3>Confidence Tiers — ${name}</h3><table><tr><th>Field</th><th>Fill %</th><th>Tier</th><th>Note</th></tr>`;
-  fields.forEach(f=>{
-    const t=tierCls(parseFloat(f.fill));
-    html+=`<tr><td>${f.field}</td><td style="text-align:center">${f.fill}%</td><td style="text-align:center"><span class="tier-${t}">${t}: ${tierLabel(parseFloat(f.fill)).split(':')[1].trim()}</span></td><td style="color:var(--muted)">${f.note}${parseFloat(f.fill)<50?' — limited reliability':''}</td></tr>`;
-  });
-  html+=`</table><p style="margin-top:10px;font-size:12px;color:#5b5147">GENERAL_CAUSE and size metrics are fully populated (high confidence). Cause-detail fields and response-time coverage vary by region.</p>`;
-  const el=document.getElementById('sk-conf');
-  el.innerHTML=html; el.className='skill-output show';
+  const fields=[{f:'ACTIVITY_CLASS',v:(100-rd.ac_null).toFixed(1),n:'Cause-activity detail'},{f:'TRUE_CAUSE',v:(100-rd.tc_null).toFixed(1),n:'True cause'},{f:'Response lag',v:rd.lag_cov.toFixed(1),n:'REPORTED→FIRE_FIGHTING_START'}];
+  let h=`<h3 style="font-size:13.5px;margin-bottom:8px">Confidence Tiers — ${name}</h3><table><tr><th>Field</th><th>Fill %</th><th>Tier</th><th>Note</th></tr>`;
+  fields.forEach(f=>{const t=tierCls(parseFloat(f.v));h+=`<tr><td>${f.f}</td><td style="text-align:center">${f.v}%</td><td><span class="tier-${t}">${t}: ${tierLbl(parseFloat(f.v))}</span></td><td style="color:var(--muted)">${f.n}${parseFloat(f.v)<50?' — limited reliability':''}</td></tr>`;});
+  h+=`</table><p style="margin-top:8px;font-size:12px;color:#5b5147">GENERAL_CAUSE and fire size (count, ha, median, p90) are fully populated and carry high confidence.</p>`;
+  const el=document.getElementById('sk-conf'); el.innerHTML=h; el.className='skill-output show';
 }
-
-// ── Skill: Director Brief ──────────────────────────────────────────────────
 function runNarr(name){
-  const rd=DATA.regions[name], p=DATA.province;
-  const lever=getLever(rd), acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
+  const rd=DATA.regions[name], p=DATA.province, lever=getLever(rd);
+  const acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
   const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  let html=`<h3>${name} — Director Brief</h3>`;
-  html+=`<p style="margin-bottom:6px"><b>What the data shows (high confidence):</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;
-  html+=`<li>${name} recorded ${rd.count.toLocaleString()} fires 2006–2025 (${rd.pct}% of the FPA total of ${p.total_fires.toLocaleString()}). Recent 3-yr mean: ${fmtHa(rd.rec_h)}/yr vs 20-yr mean ${fmtHa(rd.mean_h)}/yr (ratio ${rd.ratio_h.toFixed(2)}×).</li>`;
-  if(escapes.length) html+=`<li>Escape years (≥2× region mean ha): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.</li>`;
-  html+=`<li>Fire size: median ${rd.median_ha} ha, p90 ${rd.p90_ha} ha, total ${fmtHa(rd.total_ha)} (FPA-only).</li>`;
-  html+=`<li>Cause mix: Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}%. Planning lever: <b>${LEVER_LBL[lever]}</b>.</li>`;
-  html+=`</ul>`;
-  const speculative=[];
-  if(acFill<60||tcFill<60) speculative.push(`Activity-level and true-cause detail are partially available (ACTIVITY_CLASS ${acFill.toFixed(0)}% filled, TRUE_CAUSE ${tcFill.toFixed(0)}% filled) — any breakdown of those fields is provisional.`);
-  if(rd.lag_cov<70) speculative.push(`Response-time estimate (median ${rd.lag_med}h) covers only ${rd.lag_cov.toFixed(0)}% of fires — treat as indicative.`);
-  if(speculative.length){
-    html+=`<p style="margin-bottom:6px"><b>Where reasoning is speculative (provisional):</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;
-    speculative.forEach(s=>{ html+=`<li>${s}</li>`; });
-    html+=`</ul>`;
-  }
-  html+=`<p style="font-size:12px;color:#5b5147;border-top:1px solid var(--line);padding-top:8px;margin-top:4px">Analyst decision: this brief surfaces the signal. The deployment/prevention recommendation is the analyst's call to make and own. Any override of a flag must be logged with reason. FPA-only; cost and forecast out of scope.</p>`;
-  const el=document.getElementById('sk-narr');
-  el.innerHTML=html; el.className='skill-output show';
+  let h=`<h3 style="font-size:13.5px;margin-bottom:10px">${name} — Director Brief</h3>`;
+  h+=`<p style="margin-bottom:6px;font-size:12.5px"><b>High-confidence findings:</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;
+  h+=`<li>${fmtN(rd.count)} fires 2006–2025 (${rd.pct}% of FPA total ${fmtN(p.total_fires)}). Recent 3-yr: ${fmtHa(rd.rec_h)}/yr vs 20-yr mean ${fmtHa(rd.mean_h)}/yr (${rd.ratio_h.toFixed(2)}×).</li>`;
+  if(escapes.length) h+=`<li>Escape years (≥2× mean): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.</li>`;
+  h+=`<li>Median ${rd.median_ha} ha · p90 ${rd.p90_ha} ha · total ${fmtHa(rd.total_ha)} (FPA-only).</li>`;
+  h+=`<li>Cause: Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}%. Lever: <b>${LEVER_LBL[lever]}</b>.</li></ul>`;
+  const spec=[];
+  if(acFill<60||tcFill<60) spec.push(`Cause-detail fields are partially filled (ACTIVITY_CLASS ${acFill.toFixed(0)}%, TRUE_CAUSE ${tcFill.toFixed(0)}%) — any breakdown is provisional.`);
+  if(rd.lag_cov<70) spec.push(`Response-time estimate (${rd.lag_med}h) covers ${rd.lag_cov.toFixed(0)}% of fires — indicative only.`);
+  if(spec.length){h+=`<p style="margin-bottom:6px;font-size:12.5px"><b>Provisional:</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;spec.forEach(s=>h+=`<li>${s}</li>`);h+=`</ul>`;}
+  h+=`<p style="font-size:11.5px;color:#5b5147;border-top:1px solid var(--line);padding-top:8px">Analyst decision: deployment/prevention is the analyst's call. Any flag override must be logged. FPA-only; no cost figures; no forecast.</p>`;
+  const el=document.getElementById('sk-narr'); el.innerHTML=h; el.className='skill-output show';
 }
 
-// ── Trend Chart ────────────────────────────────────────────────────────────
-(function buildTrend(){
+// ── Trend charts ──────────────────────────────────────────────────────────
+(function(){
   const p=DATA.province, years=Object.keys(p.annual_count).sort();
   new Chart(document.getElementById('trend-chart').getContext('2d'),{
     data:{labels:years,datasets:[
-      {type:'bar',label:'Hectares burned',data:years.map(y=>p.annual_ha[y]),backgroundColor:'rgba(192,57,43,0.2)',borderColor:'rgba(192,57,43,0.5)',borderWidth:1,yAxisID:'yHa'},
+      {type:'bar',label:'Ha burned',data:years.map(y=>p.annual_ha[y]),backgroundColor:'rgba(192,57,43,0.2)',borderColor:'rgba(192,57,43,0.5)',borderWidth:1,yAxisID:'yHa'},
       {type:'line',label:'Fire count',data:years.map(y=>p.annual_count[y]),borderColor:'#2f6fa8',backgroundColor:'rgba(47,111,168,0.08)',tension:0.3,pointRadius:3,yAxisID:'yCt'},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{mode:'index',intersect:false}},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{tooltip:{mode:'index',intersect:false},legend:{labels:{font:{size:11}}}},
       scales:{x:{ticks:{font:{size:10}}},
         yHa:{position:'left',title:{display:true,text:'Hectares',font:{size:10}},ticks:{font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v}},
-        yCt:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Fire count',font:{size:10}},ticks:{font:{size:10}}}}}
+        yCt:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Count',font:{size:10}},ticks:{font:{size:10}}}}}
   });
   document.getElementById('dist-story').innerHTML=
-    `The top <b>1% of fires</b> (by size) account for approximately <b>${p.top1_share}%</b> of all hectares burned across the FPA 2006–2025. The median fire is only <b>${p.median_ha} ha</b> — a bare "average fire size" is misleading and never shown. Fire size is always reported as median + 90th percentile + total. <em>FPA-only scope.</em>`;
+    `Top <b>1% of fires</b> account for ~<b>${p.top1_share}%</b> of all FPA hectares burned 2006–2025. Median fire = <b>${p.median_ha} ha</b>. A bare mean would be <b>262 ha</b> — 13,000× the median — and is never shown. Fire size is always median + p90 + total.`;
 })();
-
-(function buildRegionTrendSel(){
+(function(){
   const sel=document.getElementById('region-trend-sel');
   Object.keys(DATA.regions).forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o);});
-  let rChart=null;
+  let rc=null;
   function draw(region){
     const rd=DATA.regions[region], years=Object.keys(rd.annual_ha).sort();
-    if(rChart) rChart.destroy();
-    rChart=new Chart(document.getElementById('region-trend-chart').getContext('2d'),{
+    if(rc) rc.destroy();
+    rc=new Chart(document.getElementById('region-trend-chart').getContext('2d'),{
       data:{labels:years,datasets:[
-        {type:'bar',label:'Annual ha',data:years.map(y=>rd.annual_ha[y]),backgroundColor:'rgba(192,57,43,0.25)',borderColor:'#c0392b',borderWidth:1},
-        {type:'line',label:'20-yr mean ha',data:years.map(()=>rd.mean_h),borderColor:'#888',borderDash:[4,4],pointRadius:0,borderWidth:1.5,tension:0},
+        {type:'bar',label:'Annual ha',data:years.map(y=>rd.annual_ha[y]),backgroundColor:years.map(y=>rd.annual_ha[y]>=rd.mean_h*1.3?'rgba(192,57,43,0.5)':'rgba(192,57,43,0.18)'),borderColor:'#c0392b',borderWidth:1},
+        {type:'line',label:'20-yr mean',data:years.map(()=>rd.mean_h),borderColor:'#888',borderDash:[4,4],pointRadius:0,borderWidth:1.5,tension:0},
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{mode:'index',intersect:false}},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{tooltip:{mode:'index',intersect:false},legend:{labels:{font:{size:11}}}},
         scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v}}}}
     });
   }
-  sel.addEventListener('change',()=>draw(sel.value));
-  draw(sel.value);
+  sel.addEventListener('change',()=>draw(sel.value)); draw(sel.value);
 })();
 
 // ── Recommend ─────────────────────────────────────────────────────────────
 document.getElementById('run-rec-btn').addEventListener('click',()=>{
-  const cap=8, regions=DATA.regions;
-  const rows=Object.entries(regions).map(([name,rd])=>{
-    const lever=getLever(rd);
-    const dm=lever==='detection'?1:lever==='prevention'?0:0.5;
-    const pm=lever==='prevention'?1:lever==='detection'?0:0.5;
+  const cap=8, rows=Object.entries(DATA.regions).map(([name,rd])=>{
+    const lever=getLever(rd), dm=lever==='detection'?1:lever==='prevention'?0:0.5, pm=lever==='prevention'?1:lever==='detection'?0:0.5;
     return {name,ratio_h:Math.min(rd.ratio_h,cap),ratio_c:Math.min(rd.ratio_c,cap),lag_med:rd.lag_med,lag_cov:rd.lag_cov,lever,dm,pm,flag_h:rd.flag_h};
   });
   const norm=arr=>{const mn=Math.min(...arr),mx=Math.max(...arr);return arr.map(v=>mx===mn?0.5:(v-mn)/(mx-mn));};
   const rhN=norm(rows.map(r=>r.ratio_h)), rcN=norm(rows.map(r=>r.ratio_c)), lgN=norm(rows.map(r=>r.lag_med));
-  rows.forEach((r,i)=>{
-    const lc=r.lag_cov<50?lgN[i]*0.5:lgN[i];
-    const base=rhN[i]*0.40+rcN[i]*0.15;
-    const lb=(rhN[i]*0.5+lc*0.5);
-    r.ds=+(base+lb*0.30*r.dm+lc*0.15).toFixed(3);
-    r.ps=+(base+lb*0.30*r.pm+lc*0.15).toFixed(3);
-  });
-  const dep=[...rows].sort((a,b)=>b.ds-a.ds);
-  const pre=[...rows].sort((a,b)=>b.ps-a.ps);
+  rows.forEach((r,i)=>{const lc=r.lag_cov<50?lgN[i]*0.5:lgN[i], b=rhN[i]*0.40+rcN[i]*0.15, lb=rhN[i]*0.5+lc*0.5; r.ds=+(b+lb*0.30*r.dm+lc*0.15).toFixed(3); r.ps=+(b+lb*0.30*r.pm+lc*0.15).toFixed(3);});
+  const dep=[...rows].sort((a,b)=>b.ds-a.ds), pre=[...rows].sort((a,b)=>b.ps-a.ps);
   function fill(id,list,sk){
     const ul=document.getElementById(id); ul.innerHTML='';
     list.forEach((r,i)=>{
       const li=document.createElement('li');
-      li.innerHTML=`<span class="rec-rank">${i+1}.</span><span class="rec-name">${r.name}${r.flag_h?'<span class="badge badge-h" style="margin-left:4px">Ha↑</span>':''}</span><span class="rec-score">score ${r[sk].toFixed(3)} · ${DATA.regions[r.name].ratio_h.toFixed(2)}× ha</span><span class="rec-lever">${LEVER_LBL[r.lever]}</span>`;
+      li.innerHTML=`<div class="rec-row1"><span class="rec-rank">${i+1}.</span><span class="rec-name">${r.name}${r.flag_h?'<span class="badge badge-h" style="margin-left:4px">Ha↑</span>':''}</span><span class="rec-score">score ${r[sk].toFixed(3)} · ${DATA.regions[r.name].ratio_h.toFixed(2)}× ha</span></div><div class="rec-lever">${LEVER_LBL[r.lever]}</div>`;
       ul.appendChild(li);
     });
   }
@@ -481,83 +664,246 @@ document.getElementById('run-rec-btn').addEventListener('click',()=>{
 // ── Cross-Region ──────────────────────────────────────────────────────────
 (function(){
   const regions=Object.keys(DATA.regions);
-  ['cross-a','cross-b'].forEach((id,idx)=>{
-    const sel=document.getElementById(id);
-    regions.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;if(idx===1&&r!==regions[0])o.selected=r===regions[1];sel.appendChild(o);});
+  ['cross-a','cross-b'].forEach((id,i)=>{
+    const s=document.getElementById(id);
+    regions.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;if(i===1&&r!==regions[0])o.selected=r===regions[1];s.appendChild(o);});
   });
 })();
 document.getElementById('run-cross-btn').addEventListener('click',()=>{
   const a=document.getElementById('cross-a').value, b=document.getElementById('cross-b').value;
   if(a===b){alert('Select two different regions.');return;}
-  const rda=DATA.regions[a], rdb=DATA.regions[b], thresh=DATA.meta.threshold;
+  const rda=DATA.regions[a], rdb=DATA.regions[b], t=DATA.meta.threshold;
   const years=Object.keys(rda.annual_ha).sort();
-  const sa=new Set(years.filter(y=>rda.annual_ha[y]>=rda.mean_h*thresh));
-  const sb=new Set(years.filter(y=>rdb.annual_ha[y]>=rdb.mean_h*thresh));
+  const sa=new Set(years.filter(y=>rda.annual_ha[y]>=rda.mean_h*t));
+  const sb=new Set(years.filter(y=>rdb.annual_ha[y]>=rdb.mean_h*t));
   const co=[...sa].filter(y=>sb.has(y)).sort();
-  const pa=sa.size/years.length, pb=sb.size/years.length;
-  const exp=+(pa*pb*years.length).toFixed(1);
+  const exp=+(sa.size/years.length*sb.size/years.length*years.length).toFixed(1);
   const strong=co.length>=2&&co.length>=exp*1.5;
-  document.getElementById('cross-interp').textContent=
-    `${a} and ${b} co-spiked in ${co.length} year${co.length!==1?'s':''}`+(co.length?` (${co.join(', ')})`:'')+(strong?`. Observed co-spikes (${co.length}) exceed the ${exp} expected under independence — pattern is strong enough to flag for the Director.`:`. Observed co-spikes (${co.length}) are near the ${exp} expected under independence — likely coincidence rather than a shared driver.`);
+  document.getElementById('cross-interp').textContent=`${a} and ${b} co-spiked in ${co.length} year${co.length!==1?'s':''}${co.length?` (${co.join(', ')})`:''}. ${strong?`Observed (${co.length}) exceeds expected (${exp}) under independence — pattern is strong enough to flag for the Director.`:`Observed (${co.length}) near expected (${exp}) under independence — likely coincidence.`}`;
   document.getElementById('cross-cospikes').innerHTML=co.length?co.map(y=>`<span class="co-year">${y}</span>`).join(''):'<em style="color:var(--muted)">None</em>';
   document.getElementById('cross-sa').textContent=[...sa].sort().join(', ')||'None';
   document.getElementById('cross-sb').textContent=[...sb].sort().join(', ')||'None';
   document.getElementById('cross-out').style.display='block';
 });
 
-// ── Anomaly ────────────────────────────────────────────────────────────────
+// ── Anomaly ───────────────────────────────────────────────────────────────
 (function(){
   const sel=document.getElementById('anomaly-year');
-  Object.keys(DATA.province.annual_ha).sort().reverse().forEach(y=>{
-    const o=document.createElement('option');o.value=y;o.textContent=y;if(y==='2023')o.selected=true;sel.appendChild(o);
-  });
+  Object.keys(DATA.province.annual_ha).sort().reverse().forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;if(y==='2023')o.selected=true;sel.appendChild(o);});
 })();
 document.getElementById('run-anomaly-btn').addEventListener('click',()=>{
   const yr=document.getElementById('anomaly-year').value;
-  const prov=DATA.province;
-  const pHa=prov.annual_ha[yr], pCt=prov.annual_count[yr];
-  const allHa=Object.values(prov.annual_ha), allCt=Object.values(prov.annual_count);
+  const pHa=DATA.province.annual_ha[yr], pCt=DATA.province.annual_count[yr];
+  const allHa=Object.values(DATA.province.annual_ha), allCt=Object.values(DATA.province.annual_count);
   const mHa=allHa.reduce((a,b)=>a+b,0)/allHa.length, mCt=allCt.reduce((a,b)=>a+b,0)/allCt.length;
   const rH=+(pHa/mHa).toFixed(2), rC=+(pCt/mCt).toFixed(2);
   const drivers=[], ambient=[];
-  Object.entries(DATA.regions).forEach(([name,rd])=>{
-    const ya=rd.annual_ha[yr]||0;
-    if(ya>=rd.mean_h*2) drivers.push({name,ha:Math.round(ya),ratio:+(ya/rd.mean_h).toFixed(1)});
-    else if(ya>=rd.mean_h) ambient.push({name,ha:Math.round(ya)});
-  });
+  Object.entries(DATA.regions).forEach(([n,rd])=>{const ya=rd.annual_ha[yr]||0;if(ya>=rd.mean_h*2)drivers.push({n,ha:Math.round(ya),r:+(ya/rd.mean_h).toFixed(1)});else if(ya>=rd.mean_h)ambient.push({n,ha:Math.round(ya)});});
   drivers.sort((a,b)=>b.ha-a.ha);
-  document.getElementById('anomaly-char').textContent=
-    `${yr} anomaly. Province-wide: ${pCt.toLocaleString()} fires, ${(pHa/1e6).toFixed(2)}M ha (${rH}× ha norm, ${rC}× count norm). Driver regions (≥2× own mean ha): ${drivers.length?drivers.map(d=>`${d.name} (${d.ha.toLocaleString()} ha, ${d.ratio}× mean)`).join(', '):'none'}. The crisis is ${rH>2*rC?'in area burned, not fire count.':'in fire count.'}`;
-  document.getElementById('anomaly-drivers').innerHTML=drivers.length?drivers.map(d=>`<div>${d.name}: <b>${d.ha.toLocaleString()} ha</b> (${d.ratio}× mean)</div>`).join(''):'<em style="color:var(--muted)">None</em>';
-  document.getElementById('anomaly-ambient').innerHTML=ambient.length?ambient.map(d=>`<div>${d.name}: ${d.ha.toLocaleString()} ha</div>`).join(''):'<em style="color:var(--muted)">None</em>';
+  document.getElementById('anomaly-char').textContent=`${yr}: ${fmtN(pCt)} fires, ${(pHa/1e6).toFixed(2)}M ha (${rH}× ha norm, ${rC}× count norm). Driver regions (≥2× own mean): ${drivers.length?drivers.map(d=>`${d.n} (${fmtHa(d.ha)}, ${d.r}×)`).join(', '):'none'}. The crisis is ${rH>2*rC?'in area burned, not fire count.':'in fire count.'}`;
+  document.getElementById('anomaly-drivers').innerHTML=drivers.length?drivers.map(d=>`<div style="margin-bottom:4px">${d.n}: <b>${fmtHa(d.ha)}</b> (${d.r}× mean)</div>`).join(''):'<em style="color:var(--muted)">None</em>';
+  document.getElementById('anomaly-ambient').innerHTML=ambient.length?ambient.map(d=>`<div style="margin-bottom:4px">${d.n}: ${fmtHa(d.ha)}</div>`).join(''):'<em style="color:var(--muted)">None</em>';
   document.getElementById('anomaly-out').style.display='block';
 });
 
-// ── Override Log (localStorage) ────────────────────────────────────────────
-const LOG_KEY='firewatch_override_log';
+// ── Chatbot ───────────────────────────────────────────────────────────────
+(function setupChat(){
+  // Region selector
+  const csel=document.getElementById('chat-region-sel');
+  Object.keys(DATA.regions).forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;csel.appendChild(o);});
+  csel.value='Grande Prairie';
+  csel.addEventListener('change',()=>refreshChips());
+
+  // API key management
+  const keyInput=document.getElementById('api-key-input');
+  const keyStatus=document.getElementById('api-key-status');
+  const savedKey=localStorage.getItem('fw_api_key')||'';
+  if(savedKey){keyInput.value=savedKey;keyStatus.textContent='Key saved ✓ — using Claude API';keyStatus.className='status ok';}
+  document.getElementById('api-key-save').addEventListener('click',()=>{
+    const k=keyInput.value.trim();
+    if(!k){localStorage.removeItem('fw_api_key');keyStatus.textContent='Key cleared — using rule-based fallback';keyStatus.className='status';return;}
+    if(!k.startsWith('sk-ant-')){keyStatus.textContent='Invalid key format (should start with sk-ant-)';keyStatus.className='status err';return;}
+    localStorage.setItem('fw_api_key',k);keyStatus.textContent='Key saved ✓ — using Claude API';keyStatus.className='status ok';
+  });
+
+  // Chat history for API
+  let chatHistory=[];
+
+  // System prompt builder
+  function buildSystem(region){
+    const rd=DATA.regions[region], lever=getLever(rd);
+    const top5=rd.causes.slice(0,5).map(c=>`  ${c.cause}: ${c.pct}% (${fmtN(c.n)})`).join('\n');
+    const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([y,ha])=>`${y}: ${fmtHa(ha)}`).join(', ');
+    return `You are FireWatch Alberta, a data assistant for Alberta Wildfire Management Branch. You answer questions grounded strictly in the historical FPA wildfire record (2006–2025).
+
+CURRENT REGION: ${region}
+- Total fires: ${fmtN(rd.count)} (${rd.pct}% of FPA total ${fmtN(DATA.province.total_fires)})
+- Total area: ${fmtHa(rd.total_ha)} | Median fire: ${rd.median_ha} ha | p90: ${rd.p90_ha} ha
+- Ha ratio (recent 3-yr vs 20-yr mean): ${rd.ratio_h}×${rd.flag_h?' — ABOVE NORM (flagged)':''}
+- Count ratio: ${rd.ratio_c}×${rd.flag_c?' — ABOVE NORM (flagged)':''}
+- Lightning: ${rd.lightning_pct}% | Human-related: ${rd.human_pct}%
+- Planning lever: ${LEVER_LBL[lever]}
+- Response lag: ${rd.lag_med}h median (${rd.lag_cov.toFixed(0)}% coverage)
+- ACTIVITY_CLASS: ${(100-rd.ac_null).toFixed(0)}% filled | TRUE_CAUSE: ${(100-rd.tc_null).toFixed(0)}% filled
+- Top causes: \n${top5}
+- Escape years (≥2× mean ${fmtHa(rd.mean_h)}): ${escapes||'none'}
+
+PROVINCE CONTEXT: ${fmtN(DATA.province.total_fires)} total FPA fires. 9/10 areas above ha norm 2023–2025. Top 1% of fires = ~97% of area burned.
+
+HARD RULES — never break:
+1. Never say "causes" or "drives" for a statistical link — say "associated with"
+2. Never forecast or predict future seasons — this is a finalized historical record
+3. Never state a cost or dollar figure — no cost field exists
+4. Never present an FPA total as all-Alberta — always say "FPA-only"
+5. Always report fire size as median + p90 + total together — never a bare mean
+6. SIZE_CLASS (A–E) is ordinal — never average it
+7. "Human-related" = all causes EXCEPT Lightning, Undetermined, Under Investigation, Restart — state this definition when using the term
+8. Every percentage must carry its N (e.g. "47.0% (1,865)")
+9. Never make climate-attribution claims (no FWI/climate data in this dataset)
+10. The analyst owns the decision — you surface signal only
+
+Keep responses concise (4–7 sentences). Be direct and data-grounded. If asked something outside scope, say so and offer what you can answer.`;
+  }
+
+  // Claude API call
+  async function callClaude(message, region){
+    const key=localStorage.getItem('fw_api_key');
+    if(!key) return null; // fall through to keyword
+    chatHistory.push({role:'user',content:message});
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key':key,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({
+          model:'claude-haiku-4-5-20251001',
+          max_tokens:600,
+          system:buildSystem(region),
+          messages:chatHistory
+        })
+      });
+      if(!res.ok){const err=await res.json();throw new Error(err.error?.message||res.status);}
+      const data=await res.json();
+      const reply=data.content[0].text;
+      chatHistory.push({role:'assistant',content:reply});
+      if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+      return reply;
+    }catch(e){
+      chatHistory.pop();
+      return `⚠ API error: ${e.message}. Check your key or try the rule-based fallback (remove key).`;
+    }
+  }
+
+  // Keyword fallback (your teammate's logic, enhanced)
+  function keywordAnswer(text, region){
+    const t=text.toLowerCase(), rd=DATA.regions[region], lever=getLever(rd);
+    const has=(arr)=>arr.some(w=>t.includes(w));
+    if(has(['cost','dollar','budget','spend','$','money'])) return `I can't answer that — <b>there is no cost field</b> in this dataset. I can show fire counts, area burned, causes, and response times.`;
+    if(has(['forecast','predict','next year','future','2026','2027','will it','next season'])) return `I won't forecast — this is a <b>finalized historical record (2006–2025)</b>. I can show you how ${region} compares to its own 20-year norm, which is the honest planning signal.`;
+    if(has(['cause','why','lightning','human','arson','incendiary','recreation'])){
+      const top3=rd.causes.slice(0,3).map(c=>`${c.cause} ${c.pct}% (${fmtN(c.n)})`).join(', ');
+      return `<b>${region} cause mix (N=${fmtN(rd.count)}):</b> Top causes — ${top3}. Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}% (human = all except Lightning/Undetermined/Under Investigation/Restart). Planning lever: <b>${LEVER_LBL[lever]}</b>.<div class="cnote">FPA-only. Associative — not causal.</div>`;
+    }
+    if(has(['size','big','hectare','median','how large','area burn','small'])){
+      return `<b>${region} fire size:</b> Median <b>${rd.median_ha} ha</b> · 90th percentile <b>${rd.p90_ha} ha</b> · total <b>${fmtHa(rd.total_ha)}</b>. The skew is extreme — a bare mean would be misleading and is never shown.<div class="cnote">Fire size = median + p90 + total. FPA-only.</div>`;
+    }
+    if(has(['trend','worse','getting','recent','norm','flag','watch','above','risk','alert'])){
+      return `<b>${region} vs 20-yr norm:</b> Ha ratio <b>${rd.ratio_h.toFixed(2)}×</b>${rd.flag_h?' — <b>above norm (flagged)</b>':' — within norm'}, count ratio <b>${rd.ratio_c.toFixed(2)}×</b>${rd.flag_c?' — flagged':' — within norm'}. Recent 3-yr mean: ${fmtHa(rd.rec_h)}/yr vs 20-yr mean ${fmtHa(rd.mean_h)}/yr.<div class="cnote">Flag = recent-3-yr mean ≥ 1.3× the 20-yr mean. Analyst owns the call.</div>`;
+    }
+    if(has(['response','lag','fast','suppression','dispatch'])){
+      return `<b>${region} response time:</b> Median ${rd.lag_med}h lag from report to first suppression (REPORTED_DATE → FIRE_FIGHTING_START_DATE), on <b>${rd.lag_cov.toFixed(0)}%</b> of fires with the field filled. The ${(100-rd.lag_cov).toFixed(0)}% gap is disclosed.<div class="cnote">Not dispatch→arrival. FPA-only.</div>`;
+    }
+    if(has(['overview','summary','about','snapshot','profile','tell me'])){
+      return `<b>${region} — 20-yr snapshot:</b> ${fmtN(rd.count)} fires (${rd.pct}% of FPA). Total area ${fmtHa(rd.total_ha)}. Median fire ${rd.median_ha} ha · p90 ${rd.p90_ha} ha. Lightning ${rd.lightning_pct}% / Human ${rd.human_pct}%. Ha ratio ${rd.ratio_h.toFixed(2)}×${rd.flag_h?' — <b>flagged</b>':''}. Planning lever: ${LEVER_LBL[lever]}.<div class="cnote">FPA-only; cost and forecast out of scope.</div>`;
+    }
+    return `I can answer about <b>causes</b>, <b>fire size</b>, <b>trend & watch-list status</b>, <b>response time</b>, or give an <b>overview</b> of ${region}. Add a Claude API key above for open-ended questions.`;
+  }
+
+  // Message display
+  const msgs=document.getElementById('chat-messages');
+  function addMsg(role, html){
+    const d=document.createElement('div');d.className=`cmsg ${role}`;
+    d.innerHTML=`<div class="cavatar">${role==='bot'?'🔥':'You'}</div><div class="cbubble">${html}</div>`;
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+  }
+  function addTyping(){
+    const d=document.createElement('div');d.className='cmsg bot';d.id='typing-indicator';
+    d.innerHTML=`<div class="cavatar">🔥</div><div class="typing"><span></span><span></span><span></span></div>`;
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+  }
+  function removeTyping(){const t=document.getElementById('typing-indicator');if(t)t.remove();}
+
+  // Chips
+  function refreshChips(){
+    const region=document.getElementById('chat-region-sel').value;
+    const rd=DATA.regions[region];
+    const existing=document.getElementById('chat-chips');if(existing)existing.remove();
+    const chips=['Give me an overview','What causes the fires?','How big are the fires?',rd.flag_h?'Why is it flagged?':'Is it above norm?','What should we focus on?'];
+    const d=document.createElement('div');d.id='chat-chips';d.className='chat-chips';
+    chips.forEach(c=>{const s=document.createElement('span');s.className='chip';s.textContent=c;s.onclick=()=>submit(c);d.appendChild(s);});
+    msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+  }
+
+  // Submit
+  async function submit(text){
+    if(!text.trim()) return;
+    const region=document.getElementById('chat-region-sel').value;
+    const chips=document.getElementById('chat-chips');if(chips)chips.remove();
+    addMsg('user',text.replace(/</g,'&lt;'));
+    document.getElementById('chat-q').value='';
+    addTyping();
+    const apiKey=localStorage.getItem('fw_api_key');
+    let reply;
+    if(apiKey){
+      reply=await callClaude(text, region);
+      if(!reply) reply=keywordAnswer(text, region);
+    } else {
+      await new Promise(r=>setTimeout(r,300));
+      reply=keywordAnswer(text, region);
+    }
+    removeTyping();
+    addMsg('bot',reply);
+    refreshChips();
+  }
+
+  document.getElementById('chat-send').onclick=()=>submit(document.getElementById('chat-q').value);
+  document.getElementById('chat-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit(e.target.value);}});
+  document.getElementById('chat-q').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,100)+'px';});
+
+  // Greet
+  addMsg('bot',`👋 I'm the <b>FireWatch analyst assistant</b>, grounded in the Alberta FPA wildfire record (2006–2025 · ${fmtN(DATA.province.total_fires)} fires). Switch regions with the dropdown above, or just name one in your question.<br><br>Add a <b>Claude API key</b> above for open-ended questions — without one, I use a rule-based fallback that handles the most common queries.`);
+  refreshChips();
+})();
+
+// ── Override Log ──────────────────────────────────────────────────────────
+const LOG_KEY='fw_override_log';
 function readLog(){try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch{return[];}}
 function renderLog(){
-  const entries=readLog(), el=document.getElementById('log-entries');
-  if(!entries.length){el.innerHTML='<div class="log-empty">No override entries yet.</div>';return;}
+  const el=document.getElementById('log-entries'), entries=readLog();
+  if(!entries.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">No override entries yet.</div>';return;}
   let h=`<table class="log-table"><tr><th>Timestamp</th><th>Analyst</th><th>Session</th><th>Field</th><th>Original</th><th>Reason</th></tr>`;
   entries.forEach(e=>{h+=`<tr><td>${e.timestamp}</td><td>${e.analyst}</td><td>${e.session}</td><td>${e.changed_field}</td><td>${e.original_flag}</td><td>${e.reason}</td></tr>`;});
   el.innerHTML=h+'</table>';
 }
 document.getElementById('log-submit').addEventListener('click',()=>{
-  const get=id=>document.getElementById(id).value.trim();
-  const analyst=get('log-analyst'),session=get('log-session'),changed_field=get('log-field'),original_flag=get('log-original'),reason=get('log-reason');
-  const alertEl=document.getElementById('log-alert');
-  if(!analyst||!session||!changed_field||!original_flag||!reason){alertEl.className='alert err';alertEl.textContent='✗ All fields are required.';alertEl.style.display='block';return;}
-  if(reason.length<10){alertEl.className='alert err';alertEl.textContent='✗ Reason must be at least 10 characters.';alertEl.style.display='block';return;}
+  const g=id=>document.getElementById(id).value.trim();
+  const [analyst,session,changed_field,original_flag,reason]=['log-analyst','log-session','log-field','log-original','log-reason'].map(g);
+  const al=document.getElementById('log-alert');
+  if(!analyst||!session||!changed_field||!original_flag||!reason){al.className='alert err';al.textContent='✗ All fields required.';al.style.display='block';return;}
+  if(reason.length<10){al.className='alert err';al.textContent='✗ Reason must be at least 10 characters.';al.style.display='block';return;}
   const entries=readLog();
   entries.push({timestamp:new Date().toISOString(),analyst,session,changed_field,original_flag,reason});
   localStorage.setItem(LOG_KEY,JSON.stringify(entries));
   ['log-analyst','log-session','log-field','log-original','log-reason'].forEach(id=>document.getElementById(id).value='');
-  alertEl.className='alert ok';alertEl.textContent='✓ Override entry logged.';alertEl.style.display='block';
+  al.className='alert ok';al.textContent='✓ Entry logged.';al.style.display='block';
   renderLog();
 });
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
+// ── Tabs ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
