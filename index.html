@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FireWatch Alberta — Pre-Season Benchmark</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--ink:#1a1410;--muted:#7a6f64;--line:#e7e0d6;--bg:#f7f4ee;--card:#fff;
+  --fire:#c0392b;--light:#2f6fa8;--human:#d98324;
+  --flag:#a93226;--flagbg:#fbeae8;--ok:#3a7d44;--okbg:#eaf6ec;
+  --shadow:0 1px 3px rgba(0,0,0,.07);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14.5px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);}
+.wrap{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
+header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px}
+header h1{font-size:24px;letter-spacing:-.4px}
+header .sub{color:var(--muted);font-size:13px}
+.scopebar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;font-size:11.5px}
+.scopebar span{background:#efe8dd;border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:#5b5147}
+.scopebar .warn{background:var(--flagbg);border-color:#e8c4bf;color:var(--flag)}
+.headline{background:linear-gradient(180deg,#fff,#fdf8f3);border:1px solid var(--line);border-left:4px solid var(--fire);border-radius:10px;padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow)}
+.headline h2{font-size:16px;margin-bottom:5px}
+.headline p{font-size:13px;color:#5b5147}
+.headline b{color:var(--fire)}
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:6px 6px 0 0;border:1px solid transparent;border-bottom:none;background:transparent;white-space:nowrap}
+.tab:hover{color:var(--ink);background:#f0ece4}
+.tab.on{color:var(--ink);background:var(--card);border-color:var(--line);border-bottom:1px solid var(--card);margin-bottom:-1px}
+.tabpanel{display:none}.tabpanel.on{display:block}
+.cols{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+@media(max-width:800px){.cols{grid-template-columns:1fr}}
+h3.sect{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;font-weight:700}
+.wl{display:flex;flex-direction:column;gap:6px}
+.region-item{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);transition:border-color .15s}
+.region-item:hover{border-color:#c9bdac}
+.region-item.sel{outline:2px solid var(--ink)}
+.region-item.flag-h{border-left:3px solid var(--flag)}
+.region-item .nm{font-weight:600;font-size:13px;flex:1}
+.region-item .rr{font-size:11px;color:var(--muted);text-align:right;line-height:1.3}
+.region-item .rr b{font-size:12.5px;color:var(--ink)}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:3px}
+.badge-h{background:var(--flagbg);color:var(--flag)}
+.badge-c{background:#eaf2fa;color:var(--light)}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;box-shadow:var(--shadow)}
+.detail h2{font-size:20px;margin-bottom:2px}
+.detail .loc{color:var(--muted);font-size:12px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:13px;margin-bottom:16px}
+.stat .v{font-size:21px;font-weight:700;line-height:1.05}
+.stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+.stat .n{font-size:10px;color:#b3a896}
+.cause-row{display:flex;align-items:center;gap:7px;margin:3px 0;font-size:12px}
+.cause-row .lbl{width:140px;text-align:right;color:#5b5147;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cause-row .track{flex:1;background:#f0ece4;border-radius:3px;height:14px;overflow:hidden}
+.cause-row .bar{height:14px}
+.cause-row .pct{width:95px;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px}
+.chart-wrap{position:relative;height:220px;margin-top:10px}
+.chart-wrap-tall{position:relative;height:280px;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.nullnote{font-size:11.5px;color:var(--flag);background:var(--flagbg);border-radius:6px;padding:5px 10px;margin-top:8px}
+.oknote{font-size:11.5px;color:var(--ok);background:var(--okbg);border-radius:6px;padding:5px 10px;margin-top:8px}
+.skill-panel{margin-top:16px}
+.skill-btn{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.skill-btn:hover{opacity:.85}
+.skill-btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.skill-btn.sec:hover{background:#f5f0e8}
+.skill-output{margin-top:12px;background:#fdf9f5;border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.65;display:none}
+.skill-output.show{display:block}
+.skill-output h3{font-size:13.5px;margin-bottom:8px;color:var(--ink)}
+.skill-output table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.skill-output th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;text-transform:uppercase}
+.skill-output td{padding:5px 8px;border-bottom:1px solid #f0ece4;vertical-align:top}
+.tier-A{color:var(--ok);font-weight:700}
+.tier-B{color:#7a6030;font-weight:700}
+.tier-C{color:var(--flag);font-weight:700}
+.tier-D{color:#888;font-weight:700}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.rec-grid{grid-template-columns:1fr}}
+.rec-list{list-style:none}
+.rec-list li{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.rec-list li:last-child{border-bottom:none}
+.rec-rank{font-weight:700;width:22px;color:var(--muted);font-size:12px}
+.rec-name{font-weight:600}
+.rec-score{font-size:11px;color:var(--muted)}
+.rec-lever{font-size:11px;color:#5b5147;font-style:italic;flex-basis:100%;padding-left:30px}
+.co-year{display:inline-block;background:#ffe8cc;border:1px solid #f0c060;border-radius:4px;padding:1px 7px;font-size:12px;margin:2px}
+.log-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.log-table th{text-align:left;border-bottom:1px solid var(--line);padding:5px 8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.log-table td{padding:5px 8px;border-bottom:1px solid #f0ece4;vertical-align:top}
+.log-empty{color:var(--muted);font-size:13px;padding:10px 0}
+.ovr-form input,.ovr-form textarea{width:100%;padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;margin-bottom:8px}
+.ovr-form textarea{min-height:60px;resize:vertical}
+.alert{padding:8px 12px;border-radius:6px;font-size:12.5px;margin-top:8px}
+.alert.ok{background:var(--okbg);color:var(--ok)}
+.alert.err{background:var(--flagbg);color:var(--flag)}
+select.fw{padding:6px 10px;font-size:13px;border:1px solid var(--line);border-radius:6px;background:#fff;margin-bottom:10px}
+.note2012{font-size:11.5px;background:#fdf3e7;border:1px solid #f0d090;border-radius:6px;padding:5px 10px;margin-top:8px;color:#7a5010}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div><h1>FireWatch Alberta</h1><div class="sub">Pre-Season Regional Benchmark · 2006–2025</div></div>
+  <div class="sub" id="hdr-right"></div>
+</header>
+
+<div class="scopebar">
+  <span>FPA-only — Mutual Aid fires outside the Forest Protection Area excluded</span>
+  <span>20-yr mean annual baseline · flag threshold 1.3×</span>
+  <span class="warn" id="flag-badge"></span>
+</div>
+
+<div class="headline">
+  <h2 id="hl-title"></h2>
+  <p id="hl-text"></p>
+</div>
+
+<div class="tabs">
+  <div class="tab on" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="trend">Annual Trend</div>
+  <div class="tab" data-tab="recommend">Recommend</div>
+  <div class="tab" data-tab="cross">Cross-Region</div>
+  <div class="tab" data-tab="anomaly">Anomaly</div>
+  <div class="tab" data-tab="log">Override Log</div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="tabpanel on" id="tab-overview">
+  <div class="cols">
+    <div>
+      <h3 class="sect">Watch List — All 10 Forest Areas</h3>
+      <div class="wl" id="watchlist"></div>
+    </div>
+    <div class="detail" id="detail-panel"><p style="color:var(--muted);padding:20px">Select a region →</p></div>
+  </div>
+</div>
+
+<!-- TREND -->
+<div class="tabpanel" id="tab-trend">
+  <div class="card">
+    <h3 class="sect">Province-wide Annual Trend · 2006–2025</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Fire count (line, right axis) and hectares burned (bars, left axis).</p>
+    <div class="chart-wrap-tall"><canvas id="trend-chart"></canvas></div>
+    <div class="note2012">⚠ 2012 reclassification: Agriculture &amp; Government split out of Resident/Other Industry. Cause trends crossing this year are not directly comparable.</div>
+    <div style="margin-top:14px">
+      <h3 class="sect">Count vs. Area — The Distribution Story</h3>
+      <p id="dist-story" style="font-size:13px;line-height:1.6;color:#5b5147"></p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 class="sect">Per-Region Annual Hectares</h3>
+    <select class="fw" id="region-trend-sel"></select>
+    <div class="chart-wrap"><canvas id="region-trend-chart"></canvas></div>
+  </div>
+</div>
+
+<!-- RECOMMEND -->
+<div class="tabpanel" id="tab-recommend">
+  <div class="card" style="margin-bottom:16px">
+    <h3 class="sect">Recommendation Engine</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">
+      Scores all 10 areas on 4 dimensions: hectares ratio (40%), count ratio (15%), cause lever (30%), response lag (15%).
+      Produces two ranked lists for analyst approval.
+    </p>
+    <button class="skill-btn" id="run-rec-btn">⚡ Run Recommendation</button>
+  </div>
+  <div id="rec-out" style="display:none">
+    <div class="rec-grid">
+      <div class="card"><h3 class="sect">Deployment Priority</h3>
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px">Initial Attack crew / air tanker pre-positioning</p>
+        <ul class="rec-list" id="deploy-list"></ul></div>
+      <div class="card"><h3 class="sect">Prevention Priority</h3>
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px">Fire bans · public education · industry restrictions</p>
+        <ul class="rec-list" id="prevent-list"></ul></div>
+    </div>
+    <div class="nullnote" style="margin-top:12px">FPA-only — excludes Mutual Aid fires. Any total is an FPA total, not all-Alberta. 20-yr mean annual baseline; flag threshold 1.3×. The dashboard surfaces the signal; the analyst makes and owns the recommendation.</div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)"><b>Override rule:</b> any change to this ranking must be logged in the Override Log tab with analyst name, original flag, and reason. No log = no change.</div>
+  </div>
+</div>
+
+<!-- CROSS-REGION -->
+<div class="tabpanel" id="tab-cross">
+  <div class="card">
+    <h3 class="sect">Cross-Region Pattern — Co-Spike Detection</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Detects whether two forest areas spike together systematically or by coincidence.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Region A</label>
+        <select class="fw" id="cross-a" style="margin:0"></select></div>
+      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Region B</label>
+        <select class="fw" id="cross-b" style="margin:0"></select></div>
+      <button class="skill-btn" id="run-cross-btn">🔍 Analyse</button>
+    </div>
+    <div id="cross-out" style="display:none">
+      <div class="card" style="background:#fdf9f5;margin-top:10px">
+        <p id="cross-interp" style="font-size:13.5px;line-height:1.65;margin-bottom:10px"></p>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Co-spike years (both areas ≥1.3× own mean ha):</div>
+        <div id="cross-cospikes" style="margin-bottom:10px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Spike years — A</div><div id="cross-sa" style="font-size:12px"></div></div>
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Spike years — B</div><div id="cross-sb" style="font-size:12px"></div></div>
+        </div>
+        <div class="nullnote" style="margin-top:10px">Co-spike = region annual ha ≥ 1.3× its own 20-yr mean. Associative only — no causal claim.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANOMALY -->
+<div class="tabpanel" id="tab-anomaly">
+  <div class="card">
+    <h3 class="sect">Anomaly Characterisation — Any Year 2006–2025</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Reads across fire count, hectares, driver regions, and size distribution simultaneously.</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Year</label>
+        <select class="fw" id="anomaly-year" style="margin:0"></select></div>
+      <button class="skill-btn" id="run-anomaly-btn">📊 Characterise</button>
+    </div>
+    <div id="anomaly-out" style="display:none">
+      <div class="card" style="background:#fdf9f5;margin-top:8px">
+        <p id="anomaly-char" style="font-size:13.5px;line-height:1.65;margin-bottom:12px"></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Driver regions (≥2× own mean ha)</div><div id="anomaly-drivers" style="font-size:13px"></div></div>
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Ambient regions (above mean)</div><div id="anomaly-ambient" style="font-size:13px"></div></div>
+        </div>
+        <div class="nullnote" style="margin-top:10px">FPA-only. Mutual Aid excluded. Associative — no causal claim.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERRIDE LOG -->
+<div class="tabpanel" id="tab-log">
+  <div class="card" style="margin-bottom:16px">
+    <h3 class="sect">Override Log — Immutable Audit Trail</h3>
+    <p style="font-size:13px;color:#5b5147;margin-bottom:12px">Any change to a flag, threshold, or recommendation must be logged here. Entries are stored in your browser and cannot be edited or deleted.</p>
+    <div id="log-entries"></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+    <h3 class="sect">Add Override Entry</h3>
+    <div class="ovr-form">
+      <input type="text" id="log-analyst" placeholder="Analyst name *">
+      <input type="text" id="log-session" placeholder="Session / date *">
+      <input type="text" id="log-field" placeholder="Changed field (e.g. flag_h High Level, threshold 1.3×→1.5×) *">
+      <input type="text" id="log-original" placeholder="Original flag / value *">
+      <textarea id="log-reason" placeholder="Reason (minimum 10 characters) *"></textarea>
+      <button class="skill-btn" id="log-submit">Submit Override Entry</button>
+      <div id="log-alert" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ── Embedded data ──────────────────────────────────────────────────────────
+const DATA = {"province":{"total_fires":27828,"total_ha":7298421,"median_ha":0.02,"top1_share":97.0,"human_pct":60.7,"lightning_pct":35.0,"annual_count":{"2006":1954,"2007":1348,"2008":1712,"2009":1710,"2010":1840,"2011":1218,"2012":1568,"2013":1226,"2014":1470,"2015":1898,"2016":1376,"2017":1244,"2018":1279,"2019":1005,"2020":723,"2021":1342,"2022":1276,"2023":1132,"2024":1230,"2025":1277},"annual_ha":{"2006":118762,"2007":103669,"2008":20787,"2009":66947,"2010":81224,"2011":806055,"2012":385658,"2013":19576,"2014":23705,"2015":466330,"2016":507134,"2017":49130,"2018":54883,"2019":791838,"2020":3274,"2021":54089,"2022":131272,"2023":2217295,"2024":714874,"2025":681920}},"regions":{"Peace River":{"count":2522,"pct":9.1,"total_ha":256092,"median_ha":0.07,"p90_ha":2.4,"lightning_pct":46.9,"human_pct":47.9,"causes":[{"cause":"Lightning","n":1184,"pct":46.9},{"cause":"Resident","n":417,"pct":16.5},{"cause":"Agriculture Industry","n":244,"pct":9.7},{"cause":"Power Line Industry","n":157,"pct":6.2},{"cause":"Forest Industry","n":141,"pct":5.6},{"cause":"Undetermined","n":121,"pct":4.8},{"cause":"Recreation","n":118,"pct":4.7},{"cause":"Incendiary","n":45,"pct":1.8},{"cause":"Oil & Gas Industry","n":26,"pct":1.0},{"cause":"Other Industry","n":20,"pct":0.8},{"cause":"Government","n":18,"pct":0.7},{"cause":"Railroad","n":15,"pct":0.6},{"cause":"Restart","n":8,"pct":0.3},{"cause":"Prescribed Fire","n":8,"pct":0.3}],"annual_count":{"2006":147,"2007":83,"2008":119,"2009":160,"2010":196,"2011":52,"2012":193,"2013":64,"2014":132,"2015":209,"2016":124,"2017":135,"2018":119,"2019":122,"2020":54,"2021":66,"2022":125,"2023":151,"2024":112,"2025":159},"annual_ha":{"2006":9247,"2007":59,"2008":1762,"2009":3752,"2010":414,"2011":696,"2012":15373,"2013":53,"2014":406,"2015":4424,"2016":328,"2017":350,"2018":5344,"2019":55619,"2020":9,"2021":251,"2022":98,"2023":66528,"2024":15591,"2025":75788},"ratio_c":1.12,"ratio_h":4.11,"mean_c":126.1,"mean_h":12805,"rec_c":140.7,"rec_h":52635,"flag_c":false,"flag_h":true,"lag_med":0.8,"lag_cov":63.8,"ac_null":52.1,"tc_null":55.5},"Edson":{"count":2313,"pct":8.3,"total_ha":277884,"median_ha":0.01,"p90_ha":0.8,"lightning_pct":27.5,"human_pct":62.3,"causes":[{"cause":"Lightning","n":636,"pct":27.5},{"cause":"Recreation","n":422,"pct":18.2},{"cause":"Resident","n":370,"pct":16.0},{"cause":"Undetermined","n":206,"pct":8.9},{"cause":"Power Line Industry","n":193,"pct":8.3},{"cause":"Forest Industry","n":105,"pct":4.5},{"cause":"Incendiary","n":100,"pct":4.3},{"cause":"Railroad","n":75,"pct":3.2},{"cause":"Oil & Gas Industry","n":70,"pct":3.0},{"cause":"Other Industry","n":47,"pct":2.0},{"cause":"Agriculture Industry","n":43,"pct":1.9},{"cause":"Under Investigation","n":21,"pct":0.9},{"cause":"Government","n":17,"pct":0.7},{"cause":"Restart","n":8,"pct":0.3}],"annual_count":{"2006":285,"2007":99,"2008":147,"2009":137,"2010":143,"2011":110,"2012":65,"2013":85,"2014":96,"2015":126,"2016":90,"2017":93,"2018":122,"2019":67,"2020":61,"2021":175,"2022":110,"2023":89,"2024":114,"2025":99},"annual_ha":{"2006":22793,"2007":28,"2008":61,"2009":1758,"2010":127,"2011":442,"2012":34,"2013":14,"2014":465,"2015":13790,"2016":105,"2017":45,"2018":1187,"2019":199,"2020":9,"2021":831,"2022":59,"2023":234559,"2024":287,"2025":1091},"ratio_c":0.87,"ratio_h":5.66,"mean_c":115.7,"mean_h":13894,"rec_c":100.7,"rec_h":78646,"flag_c":false,"flag_h":true,"lag_med":0.6,"lag_cov":54.3,"ac_null":37.8,"tc_null":41.9},"Calgary":{"count":4442,"pct":16.0,"total_ha":5179,"median_ha":0.01,"p90_ha":0.1,"lightning_pct":4.1,"human_pct":94.1,"causes":[{"cause":"Recreation","n":3498,"pct":78.7},{"cause":"Resident","n":392,"pct":8.8},{"cause":"Lightning","n":184,"pct":4.1},{"cause":"Incendiary","n":141,"pct":3.2},{"cause":"Undetermined","n":72,"pct":1.6},{"cause":"Power Line Industry","n":56,"pct":1.3},{"cause":"Railroad","n":27,"pct":0.6},{"cause":"Forest Industry","n":25,"pct":0.6},{"cause":"Other Industry","n":22,"pct":0.5},{"cause":"Oil & Gas Industry","n":10,"pct":0.2},{"cause":"Prescribed Fire","n":4,"pct":0.1},{"cause":"Under Investigation","n":4,"pct":0.1},{"cause":"Agriculture Industry","n":3,"pct":0.1},{"cause":"Restart","n":2,"pct":0.0},{"cause":"Government","n":2,"pct":0.0}],"annual_count":{"2006":234,"2007":235,"2008":206,"2009":262,"2010":315,"2011":240,"2012":408,"2013":377,"2014":334,"2015":232,"2016":233,"2017":265,"2018":166,"2019":119,"2020":218,"2021":173,"2022":168,"2023":90,"2024":92,"2025":75},"annual_ha":{"2006":27,"2007":59,"2008":55,"2009":35,"2010":29,"2011":252,"2012":50,"2013":7,"2014":9,"2015":102,"2016":60,"2017":1659,"2018":112,"2019":43,"2020":2447,"2021":84,"2022":16,"2023":6,"2024":65,"2025":62},"ratio_c":0.39,"ratio_h":0.17,"mean_c":222.1,"mean_h":259,"rec_c":85.7,"rec_h":44,"flag_c":false,"flag_h":false,"lag_med":0.0,"lag_cov":81.8,"ac_null":5.9,"tc_null":9.0},"Lac La Biche":{"count":3515,"pct":12.6,"total_ha":206986,"median_ha":0.1,"p90_ha":2.1,"lightning_pct":26.8,"human_pct":69.5,"causes":[{"cause":"Incendiary","n":990,"pct":28.2},{"cause":"Lightning","n":941,"pct":26.8},{"cause":"Resident","n":783,"pct":22.3},{"cause":"Recreation","n":313,"pct":8.9},{"cause":"Undetermined","n":126,"pct":3.6},{"cause":"Power Line Industry","n":117,"pct":3.3},{"cause":"Agriculture Industry","n":85,"pct":2.4},{"cause":"Other Industry","n":58,"pct":1.7},{"cause":"Oil & Gas Industry","n":32,"pct":0.9},{"cause":"Government","n":29,"pct":0.8},{"cause":"Forest Industry","n":18,"pct":0.5},{"cause":"Railroad","n":14,"pct":0.4},{"cause":"Prescribed Fire","n":3,"pct":0.1},{"cause":"Restart","n":3,"pct":0.1},{"cause":"Under Investigation","n":3,"pct":0.1}],"annual_count":{"2006":183,"2007":151,"2008":184,"2009":202,"2010":184,"2011":216,"2012":175,"2013":145,"2014":139,"2015":236,"2016":121,"2017":66,"2018":197,"2019":146,"2020":103,"2021":215,"2022":200,"2023":194,"2024":204,"2025":254},"annual_ha":{"2006":980,"2007":277,"2008":611,"2009":8399,"2010":338,"2011":1315,"2012":1892,"2013":270,"2014":484,"2015":62303,"2016":331,"2017":108,"2018":13850,"2019":1822,"2020":56,"2021":1481,"2022":2225,"2023":7935,"2024":23929,"2025":78379},"ratio_c":1.24,"ratio_h":3.55,"mean_c":175.8,"mean_h":10349,"rec_c":217.3,"rec_h":36748,"flag_c":false,"flag_h":true,"lag_med":0.5,"lag_cov":74.6,"ac_null":30.6,"tc_null":54.5},"Rocky":{"count":1991,"pct":7.2,"total_ha":124873,"median_ha":0.01,"p90_ha":1.0,"lightning_pct":24.8,"human_pct":70.1,"causes":[{"cause":"Recreation","n":540,"pct":27.1},{"cause":"Lightning","n":493,"pct":24.8},{"cause":"Resident","n":416,"pct":20.9},{"cause":"Power Line Industry","n":182,"pct":9.1},{"cause":"Incendiary","n":104,"pct":5.2},{"cause":"Undetermined","n":95,"pct":4.8},{"cause":"Oil & Gas Industry","n":72,"pct":3.6},{"cause":"Forest Industry","n":45,"pct":2.3},{"cause":"Agriculture Industry","n":14,"pct":0.7},{"cause":"Government","n":12,"pct":0.6},{"cause":"Other Industry","n":8,"pct":0.4},{"cause":"Restart","n":6,"pct":0.3},{"cause":"Prescribed Fire","n":3,"pct":0.2},{"cause":"Under Investigation","n":1,"pct":0.1}],"annual_count":{"2006":200,"2007":120,"2008":122,"2009":173,"2010":76,"2011":93,"2012":98,"2013":101,"2014":82,"2015":141,"2016":96,"2017":83,"2018":58,"2019":42,"2020":59,"2021":113,"2022":78,"2023":81,"2024":85,"2025":90},"annual_ha":{"2006":1121,"2007":47,"2008":77,"2009":846,"2010":58,"2011":739,"2012":408,"2013":865,"2014":9003,"2015":95,"2016":80,"2017":1700,"2018":2769,"2019":20,"2020":17,"2021":321,"2022":557,"2023":92831,"2024":13103,"2025":216},"ratio_c":0.86,"ratio_h":5.67,"mean_c":99.5,"mean_h":6244,"rec_c":85.3,"rec_h":35383,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":59.8,"ac_null":30.2,"tc_null":35.8},"Whitecourt":{"count":1383,"pct":5.0,"total_ha":82174,"median_ha":0.02,"p90_ha":1.1,"lightning_pct":34.8,"human_pct":60.4,"causes":[{"cause":"Lightning","n":481,"pct":34.8},{"cause":"Recreation","n":206,"pct":14.9},{"cause":"Resident","n":191,"pct":13.8},{"cause":"Power Line Industry","n":184,"pct":13.3},{"cause":"Oil & Gas Industry","n":60,"pct":4.3},{"cause":"Undetermined","n":59,"pct":4.3},{"cause":"Forest Industry","n":56,"pct":4.0},{"cause":"Incendiary","n":49,"pct":3.5},{"cause":"Other Industry","n":46,"pct":3.3},{"cause":"Agriculture Industry","n":28,"pct":2.0},{"cause":"Government","n":12,"pct":0.9},{"cause":"Restart","n":5,"pct":0.4},{"cause":"Railroad","n":3,"pct":0.2},{"cause":"Under Investigation","n":3,"pct":0.2}],"annual_count":{"2006":114,"2007":60,"2008":82,"2009":118,"2010":79,"2011":55,"2012":46,"2013":49,"2014":59,"2015":97,"2016":39,"2017":29,"2018":55,"2019":46,"2020":40,"2021":127,"2022":90,"2023":59,"2024":71,"2025":68},"annual_ha":{"2006":1874,"2007":47,"2008":66,"2009":4652,"2010":212,"2011":4690,"2012":23,"2013":116,"2014":39,"2015":70,"2016":671,"2017":11,"2018":14,"2019":67,"2020":10,"2021":55,"2022":142,"2023":66578,"2024":30,"2025":2804},"ratio_c":0.95,"ratio_h":5.63,"mean_c":69.2,"mean_h":4109,"rec_c":66.0,"rec_h":23137,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":59.4,"ac_null":41.0,"tc_null":45.8},"Grande Prairie":{"count":1885,"pct":6.8,"total_ha":154590,"median_ha":0.02,"p90_ha":1.3,"lightning_pct":32.4,"human_pct":62.6,"causes":[{"cause":"Lightning","n":611,"pct":32.4},{"cause":"Resident","n":440,"pct":23.3},{"cause":"Recreation","n":243,"pct":12.9},{"cause":"Power Line Industry","n":129,"pct":6.8},{"cause":"Oil & Gas Industry","n":101,"pct":5.4},{"cause":"Agriculture Industry","n":92,"pct":4.9},{"cause":"Undetermined","n":69,"pct":3.7},{"cause":"Incendiary","n":66,"pct":3.5},{"cause":"Forest Industry","n":48,"pct":2.5},{"cause":"Other Industry","n":46,"pct":2.4},{"cause":"Under Investigation","n":15,"pct":0.8},{"cause":"Government","n":13,"pct":0.7},{"cause":"Restart","n":10,"pct":0.5},{"cause":"Railroad","n":2,"pct":0.1}],"annual_count":{"2006":216,"2007":91,"2008":169,"2009":134,"2010":158,"2011":61,"2012":80,"2013":51,"2014":73,"2015":91,"2016":75,"2017":50,"2018":42,"2019":41,"2020":49,"2021":105,"2022":87,"2023":79,"2024":107,"2025":126},"annual_ha":{"2006":568,"2007":8,"2008":195,"2009":90,"2010":976,"2011":80,"2012":25,"2013":513,"2014":4329,"2015":222,"2016":137,"2017":10,"2018":20,"2019":10,"2020":46,"2021":134,"2022":128,"2023":140905,"2024":389,"2025":5804},"ratio_c":1.1,"ratio_h":6.34,"mean_c":94.2,"mean_h":7729,"rec_c":104.0,"rec_h":49033,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":53.0,"ac_null":37.4,"tc_null":41.2},"High Level":{"count":3970,"pct":14.3,"total_ha":2328337,"median_ha":0.2,"p90_ha":17.7,"lightning_pct":47.0,"human_pct":51.3,"causes":[{"cause":"Lightning","n":1865,"pct":47.0},{"cause":"Resident","n":752,"pct":18.9},{"cause":"Incendiary","n":698,"pct":17.6},{"cause":"Agriculture Industry","n":189,"pct":4.8},{"cause":"Power Line Industry","n":138,"pct":3.5},{"cause":"Recreation","n":137,"pct":3.5},{"cause":"Undetermined","n":61,"pct":1.5},{"cause":"Other Industry","n":36,"pct":0.9},{"cause":"Forest Industry","n":31,"pct":0.8},{"cause":"Government","n":27,"pct":0.7},{"cause":"Oil & Gas Industry","n":26,"pct":0.7},{"cause":"Restart","n":7,"pct":0.2},{"cause":"Under Investigation","n":2,"pct":0.1},{"cause":"Railroad","n":1,"pct":0.0}],"annual_count":{"2006":168,"2007":232,"2008":262,"2009":203,"2010":239,"2011":144,"2012":250,"2013":166,"2014":247,"2015":333,"2016":256,"2017":303,"2018":247,"2019":175,"2020":49,"2021":88,"2022":120,"2023":175,"2024":185,"2025":128},"annual_ha":{"2006":4474,"2007":14509,"2008":2511,"2009":9008,"2010":4795,"2011":11145,"2012":341418,"2013":16426,"2014":1662,"2015":225866,"2016":5875,"2017":26186,"2018":22907,"2019":410594,"2020":133,"2021":2962,"2022":22137,"2023":813468,"2024":333316,"2025":58945},"ratio_c":0.82,"ratio_h":3.45,"mean_c":198.5,"mean_h":116417,"rec_c":162.7,"rec_h":401910,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":78.7,"ac_null":48.8,"tc_null":64.6},"Slave Lake":{"count":3739,"pct":13.4,"total_ha":1385606,"median_ha":0.1,"p90_ha":3.6,"lightning_pct":48.9,"human_pct":45.2,"causes":[{"cause":"Lightning","n":1827,"pct":48.9},{"cause":"Resident","n":810,"pct":21.7},{"cause":"Power Line Industry","n":317,"pct":8.5},{"cause":"Undetermined","n":198,"pct":5.3},{"cause":"Incendiary","n":187,"pct":5.0},{"cause":"Recreation","n":182,"pct":4.9},{"cause":"Oil & Gas Industry","n":45,"pct":1.2},{"cause":"Forest Industry","n":42,"pct":1.1},{"cause":"Other Industry","n":35,"pct":0.9},{"cause":"Government","n":32,"pct":0.9},{"cause":"Agriculture Industry","n":28,"pct":0.7},{"cause":"Under Investigation","n":15,"pct":0.4},{"cause":"Railroad","n":12,"pct":0.3},{"cause":"Restart","n":8,"pct":0.2},{"cause":"Prescribed Fire","n":1,"pct":0.0}],"annual_count":{"2006":233,"2007":163,"2008":269,"2009":236,"2010":342,"2011":160,"2012":158,"2013":95,"2014":204,"2015":265,"2016":219,"2017":126,"2018":166,"2019":167,"2020":69,"2021":167,"2022":181,"2023":147,"2024":156,"2025":216},"annual_ha":{"2006":13028,"2007":131,"2008":406,"2009":7899,"2010":34143,"2011":134731,"2012":785,"2013":39,"2014":4418,"2015":22379,"2016":2261,"2017":17711,"2018":5667,"2019":284793,"2020":278,"2021":6303,"2022":2082,"2023":430020,"2024":39287,"2025":379245},"ratio_c":0.93,"ratio_h":4.08,"mean_c":186.9,"mean_h":69280,"rec_c":173.0,"rec_h":282851,"flag_c":false,"flag_h":true,"lag_med":0.7,"lag_cov":73.1,"ac_null":54.8,"tc_null":59.4},"Fort McMurray":{"count":2068,"pct":7.4,"total_ha":2476700,"median_ha":0.17,"p90_ha":46.9,"lightning_pct":73.7,"human_pct":23.0,"causes":[{"cause":"Lightning","n":1524,"pct":73.7},{"cause":"Recreation","n":212,"pct":10.3},{"cause":"Power Line Industry","n":70,"pct":3.4},{"cause":"Resident","n":69,"pct":3.3},{"cause":"Undetermined","n":57,"pct":2.8},{"cause":"Oil & Gas Industry","n":47,"pct":2.3},{"cause":"Incendiary","n":32,"pct":1.5},{"cause":"Other Industry","n":23,"pct":1.1},{"cause":"Government","n":13,"pct":0.6},{"cause":"Restart","n":8,"pct":0.4},{"cause":"Forest Industry","n":8,"pct":0.4},{"cause":"Under Investigation","n":3,"pct":0.1},{"cause":"Railroad","n":1,"pct":0.0},{"cause":"Agriculture Industry","n":1,"pct":0.0}],"annual_count":{"2006":174,"2007":114,"2008":152,"2009":85,"2010":108,"2011":87,"2012":95,"2013":93,"2014":104,"2015":168,"2016":123,"2017":94,"2018":107,"2019":80,"2020":21,"2021":113,"2022":117,"2023":67,"2024":104,"2025":62},"annual_ha":{"2006":64650,"2007":88503,"2008":15044,"2009":30508,"2010":40132,"2011":651964,"2012":25650,"2013":1272,"2014":2888,"2015":137078,"2016":497286,"2017":1350,"2018":3013,"2019":38671,"2020":269,"2021":41668,"2022":103828,"2023":364465,"2024":288877,"2025":79585},"ratio_c":0.75,"ratio_h":1.97,"mean_c":103.4,"mean_h":123835,"rec_c":77.7,"rec_h":244309,"flag_c":false,"flag_h":true,"lag_med":0.9,"lag_cov":88.5,"ac_null":77.0,"tc_null":79.2}},"meta":{"recent":["2023","2024","2025"],"threshold":1.3,"baseline":"20-yr mean annual","scope":"FPA only. Mutual Aid fires outside the Forest Protection Area are excluded. Any provincial total is an FPA total, not all-Alberta."}};
+
+// ── Cause colours ──────────────────────────────────────────────────────────
+const CC = {Lightning:'#2f6fa8',Resident:'#d98324',Incendiary:'#a93226',Recreation:'#5a9e6f',
+  'Power Line Industry':'#7b5ea7','Agriculture Industry':'#c07030','Forest Industry':'#4a8a6f',
+  'Oil & Gas Industry':'#8a6030',Undetermined:'#b3a896','Under Investigation':'#c9bdac',
+  Restart:'#d0c8bc',Government:'#7a9abc',Railroad:'#9a8a7c','Prescribed Fire':'#6aaa50',
+  'Other Industry':'#a09080'};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const fmtHa = ha => ha>=1e6?(ha/1e6).toFixed(2)+'M ha':ha>=1e3?(ha/1e3).toFixed(1)+'k ha':ha.toFixed(0)+' ha';
+const getLever = rd => rd.lightning_pct>=55?'detection':rd.human_pct>=75?'prevention':'both';
+const LEVER_LBL = {detection:'Detection & suppression reach',prevention:'Prevention (bans, education, restrictions)',both:'Both prevention AND detection/suppression'};
+const tierLabel = f => f>=90?'A: High':f>=60?'B: Moderate':f>=30?'C: Provisional':'D: Cannot assess';
+const tierCls   = f => f>=90?'A':f>=60?'B':f>=30?'C':'D';
+
+// ── Header ─────────────────────────────────────────────────────────────────
+(function buildHeader(){
+  const p = DATA.province;
+  document.getElementById('hdr-right').textContent =
+    `${p.total_fires.toLocaleString()} fires · ${(p.total_ha/1e6).toFixed(2)}M ha · FPA 2006–2025`;
+  const n = Object.values(DATA.regions).filter(r=>r.flag_h||r.flag_c).length;
+  document.getElementById('flag-badge').textContent = `⚠ ${n} of 10 areas flagged on hectares or count`;
+  const nH = Object.values(DATA.regions).filter(r=>r.flag_h).length;
+  document.getElementById('hl-title').innerHTML =
+    `<b>${nH} of 10</b> forest areas burned ≥1.3× their 20-yr mean — the crisis is in <b>area burned</b>, not fire count`;
+  document.getElementById('hl-text').innerHTML =
+    `2023–2025 mean annual: ${nH} areas above norm on hectares, 0 above norm on fire count. `+
+    `Top 1% of fires account for ~${p.top1_share}% of all hectares burned. `+
+    `<em>FPA-only; cost and forecast out of scope.</em>`;
+})();
+
+// ── Watch List ─────────────────────────────────────────────────────────────
+(function buildWL(){
+  const wl = document.getElementById('watchlist');
+  Object.entries(DATA.regions)
+    .sort((a,b)=>b[1].ratio_h-a[1].ratio_h)
+    .forEach(([name,rd])=>{
+      const el = document.createElement('div');
+      el.className='region-item'+(rd.flag_h?' flag-h':'');
+      el.dataset.region=name;
+      el.innerHTML=`<div class="nm">${name}${rd.flag_h?'<span class="badge badge-h">Ha↑</span>':''}${rd.flag_c?'<span class="badge badge-c">Ct↑</span>':''}</div><div class="rr"><b>${rd.ratio_h.toFixed(2)}×</b><br>ha ratio</div>`;
+      el.addEventListener('click',()=>selectRegion(name));
+      wl.appendChild(el);
+    });
+})();
+
+// ── Region detail ──────────────────────────────────────────────────────────
+function selectRegion(name){
+  document.querySelectorAll('.region-item').forEach(el=>el.classList.toggle('sel',el.dataset.region===name));
+  const rd=DATA.regions[name], p=DATA.province;
+  const acFill=(100-rd.ac_null).toFixed(1), tcFill=(100-rd.tc_null).toFixed(1);
+  const lever=getLever(rd);
+  const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const escHtml=escapes.length?escapes.map(([y,ha])=>`<span class="co-year">${y} (${fmtHa(ha)})</span>`).join(' '):'<em style="color:var(--muted)">None on record</em>';
+  const causeHtml=rd.causes.map(c=>{
+    const col=CC[c.cause]||'#b3a896';
+    return `<div class="cause-row"><div class="lbl">${c.cause}</div><div class="track"><div class="bar" style="width:${Math.max(c.pct,0.3)}%;background:${col}"></div></div><div class="pct">${c.pct.toFixed(1)}% <span style="color:#c9bdac">(${c.n.toLocaleString()})</span></div></div>`;
+  }).join('');
+
+  document.getElementById('detail-panel').innerHTML=`
+    <h2>${name}</h2>
+    <div class="loc">Forest area · ${rd.count.toLocaleString()} fires 2006–2025 · ${rd.pct}% of FPA total (${p.total_fires.toLocaleString()})</div>
+    <div class="stats">
+      <div class="stat"><div class="v">${rd.count.toLocaleString()}</div><div class="l">Total fires</div><div class="n">${rd.pct}% of ${p.total_fires.toLocaleString()}</div></div>
+      <div class="stat"><div class="v">${fmtHa(rd.total_ha)}</div><div class="l">Total hectares</div><div class="n">FPA-only</div></div>
+      <div class="stat"><div class="v">${rd.median_ha}</div><div class="l">Median (ha)</div><div class="n">p90: ${rd.p90_ha} ha</div></div>
+      <div class="stat"><div class="v" style="color:${rd.flag_h?'var(--flag)':'inherit'}">${rd.ratio_h.toFixed(2)}×</div><div class="l">Ha ratio</div><div class="n">Rec ${fmtHa(rd.rec_h)} / Mean ${fmtHa(rd.mean_h)}</div></div>
+      <div class="stat"><div class="v" style="color:${rd.flag_c?'var(--light)':'inherit'}">${rd.ratio_c.toFixed(2)}×</div><div class="l">Count ratio</div><div class="n">Rec ${Math.round(rd.rec_c)}/yr / Mean ${Math.round(rd.mean_c)}/yr</div></div>
+      <div class="stat"><div class="v">${rd.lag_med}h</div><div class="l">Median lag</div><div class="n">${rd.lag_cov.toFixed(0)}% coverage</div></div>
+    </div>
+    ${rd.flag_h||rd.flag_c?`<div class="nullnote">⚠ Above-norm: ${rd.flag_h?'hectares ratio '+rd.ratio_h.toFixed(2)+'× ':''}${rd.flag_c?'count ratio '+rd.ratio_c.toFixed(2)+'×':''}</div>`:'<div class="oknote">✓ Near or below 20-yr norm on both count and hectares</div>'}
+    <div style="margin:14px 0 6px">
+      <h3 class="sect">Cause Mix (GENERAL_CAUSE · fully populated)</h3>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px">Human-related (${rd.human_pct}%) = all causes except Lightning, Undetermined, Under Investigation, Restart. Lightning: ${rd.lightning_pct}%. <b>Planning lever: ${LEVER_LBL[lever]}</b></div>
+      ${causeHtml}
+    </div>
+    <div class="nullnote">ACTIVITY_CLASS ${acFill}% filled · TRUE_CAUSE ${tcFill}% filled · cause-detail breakdown is ${parseFloat(acFill)<50||parseFloat(tcFill)<50?'<b>provisional (below 50%)</b>':'moderate confidence'}</div>
+    <div style="margin-top:14px"><h3 class="sect">Escape Years (≥2× region mean of ${fmtHa(rd.mean_h)})</h3><div style="margin-top:5px">${escHtml}</div></div>
+    <div class="skill-panel">
+      <h3 class="sect" style="margin-top:16px">AI Skills</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="skill-btn" onclick="runExplain('${name}')">💡 Explain Flag</button>
+        <button class="skill-btn sec" onclick="runConf('${name}')">🎯 Confidence Tiers</button>
+        <button class="skill-btn sec" onclick="runNarr('${name}')">📄 Director Brief</button>
+      </div>
+      <div class="skill-output" id="sk-explain"></div>
+      <div class="skill-output" id="sk-conf"></div>
+      <div class="skill-output" id="sk-narr"></div>
+    </div>`;
+}
+selectRegion(Object.keys(DATA.regions)[0]);
+
+// ── Skill: Explain Flag ────────────────────────────────────────────────────
+function runExplain(name){
+  const rd=DATA.regions[name], thresh=DATA.meta.threshold;
+  const lever=getLever(rd), acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
+  const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const triggered=[];
+  if(rd.flag_h) triggered.push(`hectares ratio ${rd.ratio_h.toFixed(2)}× (recent 3-yr mean ${fmtHa(rd.rec_h)} vs 20-yr mean ${fmtHa(rd.mean_h)})`);
+  if(rd.flag_c) triggered.push(`fire count ratio ${rd.ratio_c.toFixed(2)}× (recent ${Math.round(rd.rec_c)}/yr vs 20-yr mean ${Math.round(rd.mean_c)}/yr)`);
+  const parts=[];
+  parts.push(triggered.length?`<b>Flag:</b> ${name} is above the ${thresh}× norm threshold on ${triggered.join(' and ')}.`:`<b>Status:</b> ${name} is near or below its 20-yr norms (count ${rd.ratio_c.toFixed(2)}×, hectares ${rd.ratio_h.toFixed(2)}×).`);
+  parts.push(escapes.length?`<b>Escape years</b> (≥2× region mean of ${fmtHa(rd.mean_h)}): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.`:'No escape years on record.');
+  parts.push(`<b>Cause mix:</b> Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}% of ${rd.count.toLocaleString()} fires. Human-related = all causes except Lightning, Undetermined, Under Investigation, Restart. <b>Planning lever:</b> ${LEVER_LBL[lever]}.`);
+  parts.push(`<b>Data quality:</b> ACTIVITY_CLASS ${acFill.toFixed(1)}% filled (tier ${tierCls(acFill)}: ${tierLabel(acFill)}); TRUE_CAUSE ${tcFill.toFixed(1)}% filled (tier ${tierCls(tcFill)}: ${tierLabel(tcFill)}).`+(acFill<50||tcFill<50?' Note: fill below 50% — limited reliability.':''));
+  parts.push(`<b>Response time:</b> Median REPORTED→FIRE_FIGHTING_START lag ${rd.lag_med}h (on ${rd.lag_cov.toFixed(0)}% of fires with the field filled${rd.lag_cov<50?' — limited reliability':''}).`);
+  parts.push('This synthesis surfaces the signal. The analyst makes and owns the deployment/prevention recommendation. Any override logs who, the original flag, and why. FPA-only; cost and forecast out of scope.');
+  const el=document.getElementById('sk-explain');
+  el.innerHTML=`<h3>Explain Flag — ${name}</h3>${parts.map(p=>`<p style="margin-bottom:10px">${p}</p>`).join('')}`;
+  el.className='skill-output show';
+}
+
+// ── Skill: Confidence ──────────────────────────────────────────────────────
+function runConf(name){
+  const rd=DATA.regions[name];
+  const fields=[
+    {field:'ACTIVITY_CLASS',fill:(100-rd.ac_null).toFixed(1),note:'Cause-activity breakdown'},
+    {field:'TRUE_CAUSE',fill:(100-rd.tc_null).toFixed(1),note:'True cause detail'},
+    {field:'Response time (lag)',fill:rd.lag_cov.toFixed(1),note:'REPORTED→FIRE_FIGHTING_START'},
+  ];
+  let html=`<h3>Confidence Tiers — ${name}</h3><table><tr><th>Field</th><th>Fill %</th><th>Tier</th><th>Note</th></tr>`;
+  fields.forEach(f=>{
+    const t=tierCls(parseFloat(f.fill));
+    html+=`<tr><td>${f.field}</td><td style="text-align:center">${f.fill}%</td><td style="text-align:center"><span class="tier-${t}">${t}: ${tierLabel(parseFloat(f.fill)).split(':')[1].trim()}</span></td><td style="color:var(--muted)">${f.note}${parseFloat(f.fill)<50?' — limited reliability':''}</td></tr>`;
+  });
+  html+=`</table><p style="margin-top:10px;font-size:12px;color:#5b5147">GENERAL_CAUSE and size metrics are fully populated (high confidence). Cause-detail fields and response-time coverage vary by region.</p>`;
+  const el=document.getElementById('sk-conf');
+  el.innerHTML=html; el.className='skill-output show';
+}
+
+// ── Skill: Director Brief ──────────────────────────────────────────────────
+function runNarr(name){
+  const rd=DATA.regions[name], p=DATA.province;
+  const lever=getLever(rd), acFill=100-rd.ac_null, tcFill=100-rd.tc_null;
+  const escapes=Object.entries(rd.annual_ha).filter(([,ha])=>ha>=rd.mean_h*2).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  let html=`<h3>${name} — Director Brief</h3>`;
+  html+=`<p style="margin-bottom:6px"><b>What the data shows (high confidence):</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;
+  html+=`<li>${name} recorded ${rd.count.toLocaleString()} fires 2006–2025 (${rd.pct}% of the FPA total of ${p.total_fires.toLocaleString()}). Recent 3-yr mean: ${fmtHa(rd.rec_h)}/yr vs 20-yr mean ${fmtHa(rd.mean_h)}/yr (ratio ${rd.ratio_h.toFixed(2)}×).</li>`;
+  if(escapes.length) html+=`<li>Escape years (≥2× region mean ha): ${escapes.map(([y,ha])=>`${y} (${fmtHa(ha)})`).join(', ')}.</li>`;
+  html+=`<li>Fire size: median ${rd.median_ha} ha, p90 ${rd.p90_ha} ha, total ${fmtHa(rd.total_ha)} (FPA-only).</li>`;
+  html+=`<li>Cause mix: Lightning ${rd.lightning_pct}%, Human-related ${rd.human_pct}%. Planning lever: <b>${LEVER_LBL[lever]}</b>.</li>`;
+  html+=`</ul>`;
+  const speculative=[];
+  if(acFill<60||tcFill<60) speculative.push(`Activity-level and true-cause detail are partially available (ACTIVITY_CLASS ${acFill.toFixed(0)}% filled, TRUE_CAUSE ${tcFill.toFixed(0)}% filled) — any breakdown of those fields is provisional.`);
+  if(rd.lag_cov<70) speculative.push(`Response-time estimate (median ${rd.lag_med}h) covers only ${rd.lag_cov.toFixed(0)}% of fires — treat as indicative.`);
+  if(speculative.length){
+    html+=`<p style="margin-bottom:6px"><b>Where reasoning is speculative (provisional):</b></p><ul style="margin:0 0 12px 18px;font-size:13px;line-height:1.7">`;
+    speculative.forEach(s=>{ html+=`<li>${s}</li>`; });
+    html+=`</ul>`;
+  }
+  html+=`<p style="font-size:12px;color:#5b5147;border-top:1px solid var(--line);padding-top:8px;margin-top:4px">Analyst decision: this brief surfaces the signal. The deployment/prevention recommendation is the analyst's call to make and own. Any override of a flag must be logged with reason. FPA-only; cost and forecast out of scope.</p>`;
+  const el=document.getElementById('sk-narr');
+  el.innerHTML=html; el.className='skill-output show';
+}
+
+// ── Trend Chart ────────────────────────────────────────────────────────────
+(function buildTrend(){
+  const p=DATA.province, years=Object.keys(p.annual_count).sort();
+  new Chart(document.getElementById('trend-chart').getContext('2d'),{
+    data:{labels:years,datasets:[
+      {type:'bar',label:'Hectares burned',data:years.map(y=>p.annual_ha[y]),backgroundColor:'rgba(192,57,43,0.2)',borderColor:'rgba(192,57,43,0.5)',borderWidth:1,yAxisID:'yHa'},
+      {type:'line',label:'Fire count',data:years.map(y=>p.annual_count[y]),borderColor:'#2f6fa8',backgroundColor:'rgba(47,111,168,0.08)',tension:0.3,pointRadius:3,yAxisID:'yCt'},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{mode:'index',intersect:false}},
+      scales:{x:{ticks:{font:{size:10}}},
+        yHa:{position:'left',title:{display:true,text:'Hectares',font:{size:10}},ticks:{font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v}},
+        yCt:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Fire count',font:{size:10}},ticks:{font:{size:10}}}}}
+  });
+  document.getElementById('dist-story').innerHTML=
+    `The top <b>1% of fires</b> (by size) account for approximately <b>${p.top1_share}%</b> of all hectares burned across the FPA 2006–2025. The median fire is only <b>${p.median_ha} ha</b> — a bare "average fire size" is misleading and never shown. Fire size is always reported as median + 90th percentile + total. <em>FPA-only scope.</em>`;
+})();
+
+(function buildRegionTrendSel(){
+  const sel=document.getElementById('region-trend-sel');
+  Object.keys(DATA.regions).forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o);});
+  let rChart=null;
+  function draw(region){
+    const rd=DATA.regions[region], years=Object.keys(rd.annual_ha).sort();
+    if(rChart) rChart.destroy();
+    rChart=new Chart(document.getElementById('region-trend-chart').getContext('2d'),{
+      data:{labels:years,datasets:[
+        {type:'bar',label:'Annual ha',data:years.map(y=>rd.annual_ha[y]),backgroundColor:'rgba(192,57,43,0.25)',borderColor:'#c0392b',borderWidth:1},
+        {type:'line',label:'20-yr mean ha',data:years.map(()=>rd.mean_h),borderColor:'#888',borderDash:[4,4],pointRadius:0,borderWidth:1.5,tension:0},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{mode:'index',intersect:false}},
+        scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v}}}}
+    });
+  }
+  sel.addEventListener('change',()=>draw(sel.value));
+  draw(sel.value);
+})();
+
+// ── Recommend ─────────────────────────────────────────────────────────────
+document.getElementById('run-rec-btn').addEventListener('click',()=>{
+  const cap=8, regions=DATA.regions;
+  const rows=Object.entries(regions).map(([name,rd])=>{
+    const lever=getLever(rd);
+    const dm=lever==='detection'?1:lever==='prevention'?0:0.5;
+    const pm=lever==='prevention'?1:lever==='detection'?0:0.5;
+    return {name,ratio_h:Math.min(rd.ratio_h,cap),ratio_c:Math.min(rd.ratio_c,cap),lag_med:rd.lag_med,lag_cov:rd.lag_cov,lever,dm,pm,flag_h:rd.flag_h};
+  });
+  const norm=arr=>{const mn=Math.min(...arr),mx=Math.max(...arr);return arr.map(v=>mx===mn?0.5:(v-mn)/(mx-mn));};
+  const rhN=norm(rows.map(r=>r.ratio_h)), rcN=norm(rows.map(r=>r.ratio_c)), lgN=norm(rows.map(r=>r.lag_med));
+  rows.forEach((r,i)=>{
+    const lc=r.lag_cov<50?lgN[i]*0.5:lgN[i];
+    const base=rhN[i]*0.40+rcN[i]*0.15;
+    const lb=(rhN[i]*0.5+lc*0.5);
+    r.ds=+(base+lb*0.30*r.dm+lc*0.15).toFixed(3);
+    r.ps=+(base+lb*0.30*r.pm+lc*0.15).toFixed(3);
+  });
+  const dep=[...rows].sort((a,b)=>b.ds-a.ds);
+  const pre=[...rows].sort((a,b)=>b.ps-a.ps);
+  function fill(id,list,sk){
+    const ul=document.getElementById(id); ul.innerHTML='';
+    list.forEach((r,i)=>{
+      const li=document.createElement('li');
+      li.innerHTML=`<span class="rec-rank">${i+1}.</span><span class="rec-name">${r.name}${r.flag_h?'<span class="badge badge-h" style="margin-left:4px">Ha↑</span>':''}</span><span class="rec-score">score ${r[sk].toFixed(3)} · ${DATA.regions[r.name].ratio_h.toFixed(2)}× ha</span><span class="rec-lever">${LEVER_LBL[r.lever]}</span>`;
+      ul.appendChild(li);
+    });
+  }
+  fill('deploy-list',dep,'ds'); fill('prevent-list',pre,'ps');
+  document.getElementById('rec-out').style.display='block';
+});
+
+// ── Cross-Region ──────────────────────────────────────────────────────────
+(function(){
+  const regions=Object.keys(DATA.regions);
+  ['cross-a','cross-b'].forEach((id,idx)=>{
+    const sel=document.getElementById(id);
+    regions.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;if(idx===1&&r!==regions[0])o.selected=r===regions[1];sel.appendChild(o);});
+  });
+})();
+document.getElementById('run-cross-btn').addEventListener('click',()=>{
+  const a=document.getElementById('cross-a').value, b=document.getElementById('cross-b').value;
+  if(a===b){alert('Select two different regions.');return;}
+  const rda=DATA.regions[a], rdb=DATA.regions[b], thresh=DATA.meta.threshold;
+  const years=Object.keys(rda.annual_ha).sort();
+  const sa=new Set(years.filter(y=>rda.annual_ha[y]>=rda.mean_h*thresh));
+  const sb=new Set(years.filter(y=>rdb.annual_ha[y]>=rdb.mean_h*thresh));
+  const co=[...sa].filter(y=>sb.has(y)).sort();
+  const pa=sa.size/years.length, pb=sb.size/years.length;
+  const exp=+(pa*pb*years.length).toFixed(1);
+  const strong=co.length>=2&&co.length>=exp*1.5;
+  document.getElementById('cross-interp').textContent=
+    `${a} and ${b} co-spiked in ${co.length} year${co.length!==1?'s':''}`+(co.length?` (${co.join(', ')})`:'')+(strong?`. Observed co-spikes (${co.length}) exceed the ${exp} expected under independence — pattern is strong enough to flag for the Director.`:`. Observed co-spikes (${co.length}) are near the ${exp} expected under independence — likely coincidence rather than a shared driver.`);
+  document.getElementById('cross-cospikes').innerHTML=co.length?co.map(y=>`<span class="co-year">${y}</span>`).join(''):'<em style="color:var(--muted)">None</em>';
+  document.getElementById('cross-sa').textContent=[...sa].sort().join(', ')||'None';
+  document.getElementById('cross-sb').textContent=[...sb].sort().join(', ')||'None';
+  document.getElementById('cross-out').style.display='block';
+});
+
+// ── Anomaly ────────────────────────────────────────────────────────────────
+(function(){
+  const sel=document.getElementById('anomaly-year');
+  Object.keys(DATA.province.annual_ha).sort().reverse().forEach(y=>{
+    const o=document.createElement('option');o.value=y;o.textContent=y;if(y==='2023')o.selected=true;sel.appendChild(o);
+  });
+})();
+document.getElementById('run-anomaly-btn').addEventListener('click',()=>{
+  const yr=document.getElementById('anomaly-year').value;
+  const prov=DATA.province;
+  const pHa=prov.annual_ha[yr], pCt=prov.annual_count[yr];
+  const allHa=Object.values(prov.annual_ha), allCt=Object.values(prov.annual_count);
+  const mHa=allHa.reduce((a,b)=>a+b,0)/allHa.length, mCt=allCt.reduce((a,b)=>a+b,0)/allCt.length;
+  const rH=+(pHa/mHa).toFixed(2), rC=+(pCt/mCt).toFixed(2);
+  const drivers=[], ambient=[];
+  Object.entries(DATA.regions).forEach(([name,rd])=>{
+    const ya=rd.annual_ha[yr]||0;
+    if(ya>=rd.mean_h*2) drivers.push({name,ha:Math.round(ya),ratio:+(ya/rd.mean_h).toFixed(1)});
+    else if(ya>=rd.mean_h) ambient.push({name,ha:Math.round(ya)});
+  });
+  drivers.sort((a,b)=>b.ha-a.ha);
+  document.getElementById('anomaly-char').textContent=
+    `${yr} anomaly. Province-wide: ${pCt.toLocaleString()} fires, ${(pHa/1e6).toFixed(2)}M ha (${rH}× ha norm, ${rC}× count norm). Driver regions (≥2× own mean ha): ${drivers.length?drivers.map(d=>`${d.name} (${d.ha.toLocaleString()} ha, ${d.ratio}× mean)`).join(', '):'none'}. The crisis is ${rH>2*rC?'in area burned, not fire count.':'in fire count.'}`;
+  document.getElementById('anomaly-drivers').innerHTML=drivers.length?drivers.map(d=>`<div>${d.name}: <b>${d.ha.toLocaleString()} ha</b> (${d.ratio}× mean)</div>`).join(''):'<em style="color:var(--muted)">None</em>';
+  document.getElementById('anomaly-ambient').innerHTML=ambient.length?ambient.map(d=>`<div>${d.name}: ${d.ha.toLocaleString()} ha</div>`).join(''):'<em style="color:var(--muted)">None</em>';
+  document.getElementById('anomaly-out').style.display='block';
+});
+
+// ── Override Log (localStorage) ────────────────────────────────────────────
+const LOG_KEY='firewatch_override_log';
+function readLog(){try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch{return[];}}
+function renderLog(){
+  const entries=readLog(), el=document.getElementById('log-entries');
+  if(!entries.length){el.innerHTML='<div class="log-empty">No override entries yet.</div>';return;}
+  let h=`<table class="log-table"><tr><th>Timestamp</th><th>Analyst</th><th>Session</th><th>Field</th><th>Original</th><th>Reason</th></tr>`;
+  entries.forEach(e=>{h+=`<tr><td>${e.timestamp}</td><td>${e.analyst}</td><td>${e.session}</td><td>${e.changed_field}</td><td>${e.original_flag}</td><td>${e.reason}</td></tr>`;});
+  el.innerHTML=h+'</table>';
+}
+document.getElementById('log-submit').addEventListener('click',()=>{
+  const get=id=>document.getElementById(id).value.trim();
+  const analyst=get('log-analyst'),session=get('log-session'),changed_field=get('log-field'),original_flag=get('log-original'),reason=get('log-reason');
+  const alertEl=document.getElementById('log-alert');
+  if(!analyst||!session||!changed_field||!original_flag||!reason){alertEl.className='alert err';alertEl.textContent='✗ All fields are required.';alertEl.style.display='block';return;}
+  if(reason.length<10){alertEl.className='alert err';alertEl.textContent='✗ Reason must be at least 10 characters.';alertEl.style.display='block';return;}
+  const entries=readLog();
+  entries.push({timestamp:new Date().toISOString(),analyst,session,changed_field,original_flag,reason});
+  localStorage.setItem(LOG_KEY,JSON.stringify(entries));
+  ['log-analyst','log-session','log-field','log-original','log-reason'].forEach(id=>document.getElementById(id).value='');
+  alertEl.className='alert ok';alertEl.textContent='✓ Override entry logged.';alertEl.style.display='block';
+  renderLog();
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('on'));
+    tab.classList.add('on');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('on');
+    if(tab.dataset.tab==='log') renderLog();
+  });
+});
+renderLog();
+</script>
+</body>
+</html>

@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FireWatch Alberta</title>
+  <style>
+:root {
+  --ink: #1a1410;
+  --muted: #7a6f64;
+  --line: #e4ddd3;
+  --bg: #faf7f2;
+  --card: #fff;
+  --fire: #c0392b;
+  --light: #2f6fa8;
+  --human: #d98324;
+  --flag: #a93226;
+  --ok: #3a7d44;
+  --shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 15px/1.5 -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
+
+header.top { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 8px; }
+header.top h1 { margin: 0; font-size: 26px; letter-spacing: -.4px; }
+header.top .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+.scopebar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin: 12px 0 22px; font-size: 12.5px;
+}
+.scopebar span {
+  background: #f0e9df; border: 1px solid var(--line);
+  border-radius: 20px; padding: 4px 11px; color: #5b5147;
+}
+.scopebar .warn { background: #fbeae8; border-color: #e8c4bf; color: #a93226; }
+
+h2.sect {
+  font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); margin: 30px 0 6px; font-weight: 700;
+}
+.sect-note { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+
+.ph { color: #b9ae9f; font-style: italic; }
+
+/* ---- Loading / Error ---- */
+.load-status {
+  text-align: center; padding: 40px; color: var(--muted); font-size: 14px;
+}
+.load-error {
+  background: #fbeae8; border: 1px solid #e8c4bf; border-radius: 8px;
+  padding: 16px 20px; color: #7a2a22; margin: 20px 0;
+}
+.validation-warn {
+  background: #fff8e1; border: 1px solid #f5c842; border-radius: 8px;
+  padding: 12px 16px; color: #7a5c00; margin: 16px 0; font-size: 13px;
+}
+.validation-warn ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* ---- Signal panel ---- */
+.signals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.sig {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px;
+  box-shadow: var(--shadow); cursor: pointer;
+  transition: transform .1s, box-shadow .1s;
+}
+.sig:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+.sig.hot { border-color: #e8b4ac; background: #fdf4f2; }
+.sig .name { font-weight: 600; font-size: 14px; }
+.sig .delta { font-size: 20px; font-weight: 700; margin-top: 4px; }
+.sig.hot .delta { color: var(--flag); }
+.sig .delta.calm { color: var(--ok); }
+.sig .vs { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.sig.sel { outline: 2px solid var(--ink); }
+.sig-ratios { margin-top: 6px; }
+.sig-ratio-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin: 2px 0; }
+.sig-label { color: var(--muted); }
+.sig-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sig-val.hot-val { color: var(--flag); }
+
+/* ---- Gold / benchmark card ---- */
+.gold {
+  background: var(--card); border: 1px solid var(--line);
+  border-left: 4px solid var(--fire);
+  border-radius: 12px; padding: 22px 24px;
+  box-shadow: var(--shadow); margin-top: 6px;
+}
+.tag {
+  display: inline-block; background: #1a1410; color: #fff;
+  font-size: 11px; letter-spacing: .06em;
+  padding: 3px 9px; border-radius: 4px;
+  text-transform: uppercase; margin-bottom: 10px; margin-right: 6px;
+}
+.tag-watch { background: var(--flag); }
+.tag-normal { background: var(--ok); }
+
+.gold h3 { margin: 0 0 4px; font-size: 22px; }
+.gold .place { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 18px; margin-bottom: 18px;
+}
+.stat .v { font-size: 25px; font-weight: 700; line-height: 1.1; }
+.stat .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.stat .n { font-size: 11px; color: #b9ae9f; }
+
+/* ---- Cause bars ---- */
+.cause-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: 6px 0; font-size: 13px;
+}
+.cause-row .lbl { width: 160px; text-align: right; color: #5b5147; flex-shrink: 0; }
+.cause-row .bar { height: 16px; border-radius: 3px; flex-shrink: 0; }
+.cause-row .pct { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
+
+.watchlist-detail { border-top: 1px solid var(--line); padding-top: 10px; }
+
+.read {
+  background: #f7f2ea; border-radius: 8px;
+  padding: 13px 16px; margin-top: 16px; font-size: 14px;
+}
+.read b { color: var(--fire); }
+
+/* ---- Dual story ---- */
+.dual {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-top: 6px;
+}
+.dual .box {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px; box-shadow: var(--shadow);
+}
+.dual .big { font-size: 28px; font-weight: 700; }
+.dual .cap { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
+/* ---- Trend ---- */
+.trend {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px; box-shadow: var(--shadow);
+}
+.trend-note { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.legend { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ---- Response time ---- */
+.rt-note { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+
+table.placeholder {
+  width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;
+}
+table.placeholder th,
+table.placeholder td {
+  border: 1px solid var(--line); padding: 7px 10px; text-align: left;
+}
+table.placeholder th { background: #f0e9df; font-weight: 600; }
+table.placeholder td.ph { color: #b9ae9f; }
+
+/* ---- Ask FireWatch ---- */
+.ask-panel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px; box-shadow: var(--shadow);
+}
+.ask-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.ask-questions { display: flex; gap: 10px; flex-wrap: wrap; }
+.ask-btn {
+  background: #f0e9df; border: 1px solid var(--line);
+  border-radius: 20px; padding: 7px 16px;
+  font-size: 13px; cursor: pointer; color: var(--ink);
+  transition: background .15s;
+}
+.ask-btn:hover { background: #e4ddd3; }
+.ask-answer { margin-top: 14px; }
+.ask-resp {
+  background: #f7f2ea; border-radius: 8px;
+  padding: 13px 16px; font-size: 13.5px; line-height: 1.6;
+}
+
+/* ---- Threshold control ---- */
+.threshold-row {
+  display: flex; align-items: center; gap: 12px;
+  background: #f7f2ea; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.threshold-row label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.threshold-row input[type=range] { flex: 1; min-width: 140px; max-width: 240px; accent-color: var(--fire); }
+.threshold-val { font-size: 15px; font-weight: 700; color: var(--fire); min-width: 36px; font-variant-numeric: tabular-nums; }
+.threshold-note { font-size: 11.5px; color: var(--muted); }
+.analyst-btn {
+  background: var(--ink); color: #fff;
+  border: none; border-radius: 6px; padding: 5px 12px;
+  font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.analyst-btn:hover { background: #333; }
+
+/* ---- Modal overlay ---- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: #fff; border-radius: 14px; padding: 28px 30px;
+  max-width: 500px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,.25);
+  position: relative;
+}
+.modal h4 { margin: 0 0 6px; font-size: 17px; }
+.modal .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+.modal label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; margin-top: 14px; }
+.modal input[type=text], .modal textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: 7px;
+  padding: 8px 10px; font-size: 13.5px; font-family: inherit;
+  box-sizing: border-box;
+}
+.modal textarea { height: 72px; resize: vertical; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.modal-cancel {
+  background: #f0e9df; border: none; border-radius: 7px;
+  padding: 8px 18px; font-size: 13px; cursor: pointer;
+}
+.modal-confirm {
+  background: var(--fire); color: #fff; border: none;
+  border-radius: 7px; padding: 8px 18px; font-size: 13px; cursor: pointer; font-weight: 600;
+}
+.modal-confirm:disabled { background: #cbbfae; cursor: default; }
+
+/* ---- Audit log ---- */
+.audit-log-panel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px; box-shadow: var(--shadow);
+  margin-top: 28px;
+}
+.audit-empty { font-size: 13px; color: var(--muted); font-style: italic; }
+.audit-entry {
+  border: 1px solid var(--line); border-radius: 8px; padding: 11px 14px;
+  margin-top: 10px; font-size: 13px;
+}
+.audit-entry .ae-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.audit-entry .ae-who { font-weight: 700; }
+.audit-entry .ae-time { color: var(--muted); font-size: 12px; }
+.audit-entry .ae-change { background: #fbeae8; border-radius: 5px; padding: 4px 9px; font-size: 12.5px; color: #7a2a22; margin-bottom: 5px; }
+.audit-entry .ae-reason { color: #5b5147; }
+
+/* ---- Drill-down / data trail ---- */
+.stat.clickable { cursor: pointer; }
+.stat.clickable:hover { background: #f7f2ea; border-radius: 8px; }
+.dt-header { margin-bottom: 12px; }
+.dt-fraction { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+.dt-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+table.dt-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+table.dt-table th, table.dt-table td {
+  border: 1px solid var(--line); padding: 6px 10px; text-align: left;
+}
+table.dt-table th { background: #f0e9df; font-weight: 600; }
+table.dt-table tr.dt-recent td { background: #fdf4f2; font-weight: 600; }
+.dt-loading { color: var(--muted); font-style: italic; font-size: 13px; padding: 10px 0; }
+.dt-scope { font-size: 12px; color: var(--muted); margin-top: 10px; background: #f7f2ea; padding: 8px 12px; border-radius: 6px; }
+
+/* ---- Response-time bar chart ---- */
+.rt-bars { margin: 8px 0 6px; }
+.rt-bar-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 13px; }
+.rt-bar-label { width: 120px; text-align: right; color: #5b5147; flex-shrink: 0; font-size: 12.5px; }
+.rt-bar-fill { height: 18px; border-radius: 3px; background: var(--light); flex-shrink: 0; transition: width .3s; }
+.rt-bar-val { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; min-width: 50px; }
+.rt-bar-cov { font-size: 11.5px; color: #b9ae9f; }
+
+/* ---- Footer / governance ---- */
+footer.gov {
+  margin-top: 34px; border-top: 1px solid var(--line);
+  padding-top: 16px; font-size: 12.5px; color: var(--muted);
+}
+footer.gov b { color: var(--ink); }
+.never {
+  background: #fbeae8; border: 1px solid #e8c4bf;
+  border-radius: 8px; padding: 12px 15px; margin-top: 10px;
+  font-size: 12.5px; color: #7a2a22;
+}
+.never code { background: #f4d9d4; padding: 1px 5px; border-radius: 3px; }
+
+@media (max-width: 600px) {
+  .dual { grid-template-columns: 1fr; }
+  .cause-row .lbl { width: 100px; font-size: 11px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>🔥 FireWatch Alberta</h1>
+    <div class="sub">Pre-season regional benchmark for Alberta wildfire planning analysts</div>
+  </header>
+
+  <div class="scopebar">
+    <span>Data: Alberta FPA Historical Wildfire 2006–2025</span>
+    <span id="badge-count">Loading…</span>
+    <span>10 forest areas</span>
+    <span class="warn">⚠ FPA only — excludes Mutual Aid fires</span>
+    <span class="warn">⚠ No cost / no forecast</span>
+  </div>
+
+  <div id="validation-warn" class="validation-warn" style="display:none"></div>
+
+  <div id="load-status" class="load-status">Loading wildfire data…</div>
+  <div id="load-error" class="load-error" style="display:none"></div>
+
+  <div id="dashboard" style="display:none">
+
+    <!-- ===== WATCH LIST ===== -->
+    <h2 class="sect">Watch list — recent 3-yr avg vs 20-yr norm</h2>
+    <div class="sect-note">
+      Recent = 2023–2025 average annual. Norm = 2006–2025 median annual.
+      <b>Watch</b> = either count ratio or hectares ratio ≥ 1.3×.
+      Click a card to load that area's benchmark below.
+    </div>
+    <div class="threshold-row">
+      <label for="thresh-slider">Watch threshold:</label>
+      <input type="range" id="thresh-slider" min="1.0" max="3.0" step="0.1" value="1.3">
+      <span class="threshold-val" id="thresh-display">1.3×</span>
+      <span class="threshold-note">An area is flagged when count <em>or</em> hectares ratio meets this value.
+        Starting value 1.3× is an analyst assumption — validate before use in a recommendation.</span>
+      <button class="analyst-btn" id="set-analyst-btn">Change analyst…</button>
+      <span id="analyst-label" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <div id="signals" class="signals"></div>
+
+    <!-- ===== REGION BENCHMARK ===== -->
+    <h2 class="sect">Selected area — 20-year benchmark</h2>
+    <div id="benchmark" class="gold"></div>
+
+    <!-- ===== DUAL STORY ===== -->
+    <h2 class="sect">Why the dashboard shows both count and hectares</h2>
+    <div id="dual-story" class="dual"></div>
+
+    <!-- ===== ANNUAL TREND ===== -->
+    <h2 class="sect">Annual trend 2006–2025 (all FPA)</h2>
+    <div id="trend-section" class="trend"></div>
+
+    <!-- ===== RESPONSE TIME ===== -->
+    <h2 class="sect">Response-time view <span class="ph">(stretch goal)</span></h2>
+    <div id="response-time"></div>
+
+    <!-- ===== ASK FIREWATCH ===== -->
+    <h2 class="sect">Ask FireWatch</h2>
+    <div id="ask-panel" class="ask-panel"></div>
+
+  </div><!-- /dashboard -->
+
+  <!-- ===== HUMAN-IN-THE-LOOP FOOTER ===== -->
+  <footer class="gov">
+    <b>Human-in-the-loop.</b>
+    The dashboard surfaces signals; the analyst makes and owns the deployment or prevention recommendation.
+    Any override of a flag or norm threshold logs <b>who</b>, the <b>original flag</b>, and <b>why</b> — no log, no change.
+    <div class="never">
+      <b>Must never produce:</b>
+      causal language ("causes"/"drives") ·
+      a bare mean fire size or an averaged <code>SIZE_CLASS</code> ·
+      any dollar figure (no cost field exists) ·
+      a forecast ·
+      an FPA total presented as all-Alberta ·
+      a position on suppression policy.
+    </div>
+  </footer>
+
+  <!-- ===== AUDIT LOG ===== -->
+  <h2 class="sect" style="margin-top:36px">Override & audit log</h2>
+  <div class="sect-note">
+    Every threshold change is logged here. Per spec §8: no log, no change.
+    Log is stored in browser localStorage and appended on export/print.
+  </div>
+  <div class="audit-log-panel">
+    <div id="audit-log-body"><div class="audit-empty">No overrides recorded this session.</div></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="analyst-btn" id="export-log-btn" style="background:#3a7d44">Copy log as JSON</button>
+      <button class="analyst-btn" id="clear-log-btn" style="background:#7a2a22">Clear log</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- ===== MODAL OVERLAY ===== -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <h4 id="modal-title">Log this change</h4>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modal-cancel">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm">Apply &amp; log</button>
+    </div>
+  </div>
+</div>
+
+<script>window.__PRECOMPUTED__ = {"totalCount":27828,"totalHa":7298420.92,"regionStats":{"C":{"code":"C","name":"Calgary","count":4442,"pctOfTotal":"16.0% (4,442 / 27,828)","totalHa":5179.270000000173,"totalHaFmt":"5,179 ha","medianHa":0.01,"p90Ha":0.1,"causeCounts":{"Resident":392,"Undetermined":72,"Recreation":3498,"Lightning":184,"Oil & Gas Industry":10,"Incendiary":141,"Power Line Industry":56,"Forest Industry":25,"Other Industry":22,"Railroad":27,"Restart":2,"Prescribed Fire":4,"Agriculture Industry":3,"Government":2,"Under Investigation":4},"topCauses":[{"cause":"Recreation","count":3498,"pct":78.7,"pctStr":"78.7% (3,498 / 4,442)"},{"cause":"Resident","count":392,"pct":8.8,"pctStr":"8.8% (392 / 4,442)"},{"cause":"Lightning","count":184,"pct":4.1,"pctStr":"4.1% (184 / 4,442)"},{"cause":"Incendiary","count":141,"pct":3.2,"pctStr":"3.2% (141 / 4,442)"},{"cause":"Other (11 causes)","count":227,"pct":5.1,"pctStr":"5.1% (227 / 4,442)"}],"lightningCount":184,"lightningPct":4.1,"humanCount":4182,"humanPct":94.1},"E":{"code":"E","name":"Edson","count":2313,"pctOfTotal":"8.3% (2,313 / 27,828)","totalHa":277883.5500000012,"totalHaFmt":"277,884 ha","medianHa":0.01,"p90Ha":0.8,"causeCounts":{"Incendiary":100,"Resident":370,"Lightning":636,"Undetermined":206,"Oil & Gas Industry":70,"Recreation":422,"Railroad":75,"Forest Industry":105,"Other Industry":47,"Power Line Industry":193,"Restart":8,"Agriculture Industry":43,"Government":17,"Under Investigation":21},"topCauses":[{"cause":"Lightning","count":636,"pct":27.5,"pctStr":"27.5% (636 / 2,313)"},{"cause":"Recreation","count":422,"pct":18.2,"pctStr":"18.2% (422 / 2,313)"},{"cause":"Resident","count":370,"pct":16.0,"pctStr":"16.0% (370 / 2,313)"},{"cause":"Undetermined","count":206,"pct":8.9,"pctStr":"8.9% (206 / 2,313)"},{"cause":"Other (10 causes)","count":679,"pct":29.4,"pctStr":"29.4% (679 / 2,313)"}],"lightningCount":636,"lightningPct":27.5,"humanCount":1450,"humanPct":62.7},"G":{"code":"G","name":"Grande Prairie","count":1885,"pctOfTotal":"6.8% (1,885 / 27,828)","totalHa":154589.72000000082,"totalHaFmt":"154,590 ha","medianHa":0.02,"p90Ha":1.3,"causeCounts":{"Lightning":611,"Resident":440,"Forest Industry":48,"Restart":10,"Recreation":243,"Power Line Industry":129,"Oil & Gas Industry":101,"Undetermined":69,"Incendiary":66,"Other Industry":46,"Railroad":2,"Agriculture Industry":92,"Government":13,"Under Investigation":15},"topCauses":[{"cause":"Lightning","count":611,"pct":32.4,"pctStr":"32.4% (611 / 1,885)"},{"cause":"Resident","count":440,"pct":23.3,"pctStr":"23.3% (440 / 1,885)"},{"cause":"Recreation","count":243,"pct":12.9,"pctStr":"12.9% (243 / 1,885)"},{"cause":"Power Line Industry","count":129,"pct":6.8,"pctStr":"6.8% (129 / 1,885)"},{"cause":"Other (10 causes)","count":462,"pct":24.5,"pctStr":"24.5% (462 / 1,885)"}],"lightningCount":611,"lightningPct":32.4,"humanCount":1190,"humanPct":63.1},"H":{"code":"H","name":"High Level","count":3970,"pctOfTotal":"14.3% (3,970 / 27,828)","totalHa":2328336.8200000054,"totalHaFmt":"2.33M ha","medianHa":0.2,"p90Ha":17.7,"causeCounts":{"Recreation":137,"Resident":752,"Lightning":1865,"Other Industry":36,"Oil & Gas Industry":26,"Power Line Industry":138,"Restart":7,"Forest Industry":31,"Incendiary":698,"Undetermined":61,"Agriculture Industry":189,"Government":27,"Railroad":1,"Under Investigation":2},"topCauses":[{"cause":"Lightning","count":1865,"pct":47.0,"pctStr":"47.0% (1,865 / 3,970)"},{"cause":"Resident","count":752,"pct":18.9,"pctStr":"18.9% (752 / 3,970)"},{"cause":"Incendiary","count":698,"pct":17.6,"pctStr":"17.6% (698 / 3,970)"},{"cause":"Agriculture Industry","count":189,"pct":4.8,"pctStr":"4.8% (189 / 3,970)"},{"cause":"Other (10 causes)","count":466,"pct":11.7,"pctStr":"11.7% (466 / 3,970)"}],"lightningCount":1865,"lightningPct":47.0,"humanCount":2042,"humanPct":51.4},"L":{"code":"L","name":"Lac La Biche","count":3515,"pctOfTotal":"12.6% (3,515 / 27,828)","totalHa":206985.87999999928,"totalHaFmt":"206,986 ha","medianHa":0.1,"p90Ha":2.1,"causeCounts":{"Resident":783,"Oil & Gas Industry":32,"Lightning":941,"Incendiary":990,"Recreation":313,"Other Industry":58,"Power Line Industry":117,"Forest Industry":18,"Undetermined":126,"Prescribed Fire":3,"Railroad":14,"Restart":3,"Agriculture Industry":85,"Government":29,"Under Investigation":3},"topCauses":[{"cause":"Incendiary","count":990,"pct":28.2,"pctStr":"28.2% (990 / 3,515)"},{"cause":"Lightning","count":941,"pct":26.8,"pctStr":"26.8% (941 / 3,515)"},{"cause":"Resident","count":783,"pct":22.3,"pctStr":"22.3% (783 / 3,515)"},{"cause":"Recreation","count":313,"pct":8.9,"pctStr":"8.9% (313 / 3,515)"},{"cause":"Other (11 causes)","count":488,"pct":13.9,"pctStr":"13.9% (488 / 3,515)"}],"lightningCount":941,"lightningPct":26.8,"humanCount":2445,"humanPct":69.6},"M":{"code":"M","name":"Fort McMurray","count":2068,"pctOfTotal":"7.4% (2,068 / 27,828)","totalHa":2476700.270000003,"totalHaFmt":"2.48M ha","medianHa":0.17,"p90Ha":46.9,"causeCounts":{"Lightning":1524,"Resident":69,"Recreation":212,"Undetermined":57,"Other Industry":23,"Oil & Gas Industry":47,"Power Line Industry":70,"Restart":8,"Forest Industry":8,"Incendiary":32,"Railroad":1,"Government":13,"Under Investigation":3,"Agriculture Industry":1},"topCauses":[{"cause":"Lightning","count":1524,"pct":73.7,"pctStr":"73.7% (1,524 / 2,068)"},{"cause":"Recreation","count":212,"pct":10.3,"pctStr":"10.3% (212 / 2,068)"},{"cause":"Power Line Industry","count":70,"pct":3.4,"pctStr":"3.4% (70 / 2,068)"},{"cause":"Resident","count":69,"pct":3.3,"pctStr":"3.3% (69 / 2,068)"},{"cause":"Other (10 causes)","count":193,"pct":9.3,"pctStr":"9.3% (193 / 2,068)"}],"lightningCount":1524,"lightningPct":73.7,"humanCount":484,"humanPct":23.4},"P":{"code":"P","name":"Peace River","count":2522,"pctOfTotal":"9.1% (2,522 / 27,828)","totalHa":256091.7400000008,"totalHaFmt":"256,092 ha","medianHa":0.07,"p90Ha":2.4,"causeCounts":{"Resident":417,"Other Industry":20,"Forest Industry":141,"Lightning":1184,"Restart":8,"Oil & Gas Industry":26,"Recreation":118,"Power Line Industry":157,"Prescribed Fire":8,"Undetermined":121,"Incendiary":45,"Agriculture Industry":244,"Government":18,"Railroad":15},"topCauses":[{"cause":"Lightning","count":1184,"pct":46.9,"pctStr":"46.9% (1,184 / 2,522)"},{"cause":"Resident","count":417,"pct":16.5,"pctStr":"16.5% (417 / 2,522)"},{"cause":"Agriculture Industry","count":244,"pct":9.7,"pctStr":"9.7% (244 / 2,522)"},{"cause":"Power Line Industry","count":157,"pct":6.2,"pctStr":"6.2% (157 / 2,522)"},{"cause":"Other (10 causes)","count":520,"pct":20.6,"pctStr":"20.6% (520 / 2,522)"}],"lightningCount":1184,"lightningPct":46.9,"humanCount":1217,"humanPct":48.3},"R":{"code":"R","name":"Rocky","count":1991,"pctOfTotal":"7.2% (1,991 / 27,828)","totalHa":124873.44999999966,"totalHaFmt":"124,873 ha","medianHa":0.01,"p90Ha":1.0,"causeCounts":{"Lightning":493,"Recreation":540,"Oil & Gas Industry":72,"Power Line Industry":182,"Resident":416,"Incendiary":104,"Forest Industry":45,"Restart":6,"Undetermined":95,"Prescribed Fire":3,"Other Industry":8,"Agriculture Industry":14,"Government":12,"Under Investigation":1},"topCauses":[{"cause":"Recreation","count":540,"pct":27.1,"pctStr":"27.1% (540 / 1,991)"},{"cause":"Lightning","count":493,"pct":24.8,"pctStr":"24.8% (493 / 1,991)"},{"cause":"Resident","count":416,"pct":20.9,"pctStr":"20.9% (416 / 1,991)"},{"cause":"Power Line Industry","count":182,"pct":9.1,"pctStr":"9.1% (182 / 1,991)"},{"cause":"Other (10 causes)","count":360,"pct":18.1,"pctStr":"18.1% (360 / 1,991)"}],"lightningCount":493,"lightningPct":24.8,"humanCount":1402,"humanPct":70.4},"S":{"code":"S","name":"Slave Lake","count":3739,"pctOfTotal":"13.4% (3,739 / 27,828)","totalHa":1385606.0200000093,"totalHaFmt":"1.39M ha","medianHa":0.1,"p90Ha":3.6,"causeCounts":{"Lightning":1827,"Restart":8,"Resident":810,"Other Industry":35,"Oil & Gas Industry":45,"Power Line Industry":317,"Recreation":182,"Undetermined":198,"Incendiary":187,"Forest Industry":42,"Railroad":12,"Prescribed Fire":1,"Government":32,"Agriculture Industry":28,"Under Investigation":15},"topCauses":[{"cause":"Lightning","count":1827,"pct":48.9,"pctStr":"48.9% (1,827 / 3,739)"},{"cause":"Resident","count":810,"pct":21.7,"pctStr":"21.7% (810 / 3,739)"},{"cause":"Power Line Industry","count":317,"pct":8.5,"pctStr":"8.5% (317 / 3,739)"},{"cause":"Undetermined","count":198,"pct":5.3,"pctStr":"5.3% (198 / 3,739)"},{"cause":"Other (11 causes)","count":587,"pct":15.7,"pctStr":"15.7% (587 / 3,739)"}],"lightningCount":1827,"lightningPct":48.9,"humanCount":1699,"humanPct":45.4},"W":{"code":"W","name":"Whitecourt","count":1383,"pctOfTotal":"5.0% (1,383 / 27,828)","totalHa":82174.19999999988,"totalHaFmt":"82,174 ha","medianHa":0.02,"p90Ha":1.1,"causeCounts":{"Lightning":481,"Restart":5,"Recreation":206,"Oil & Gas Industry":60,"Power Line Industry":184,"Resident":191,"Forest Industry":56,"Incendiary":49,"Other Industry":46,"Undetermined":59,"Agriculture Industry":28,"Government":12,"Railroad":3,"Under Investigation":3},"topCauses":[{"cause":"Lightning","count":481,"pct":34.8,"pctStr":"34.8% (481 / 1,383)"},{"cause":"Recreation","count":206,"pct":14.9,"pctStr":"14.9% (206 / 1,383)"},{"cause":"Resident","count":191,"pct":13.8,"pctStr":"13.8% (191 / 1,383)"},{"cause":"Power Line Industry","count":184,"pct":13.3,"pctStr":"13.3% (184 / 1,383)"},{"cause":"Other (10 causes)","count":321,"pct":23.2,"pctStr":"23.2% (321 / 1,383)"}],"lightningCount":481,"lightningPct":34.8,"humanCount":840,"humanPct":60.7}},"watchList":[{"code":"G","name":"Grande Prairie","recentCountAvg":104.0,"medianCount":83.5,"recentHaAvg":49033.0,"medianHa20":135.0,"recentHaAvgFmt":"49,033 ha","medianHa20Fmt":"135.48 ha","countRatio":1.25,"haRatio":361.92,"maxRatio":361.92,"status":"Watch"},{"code":"W","name":"Whitecourt","recentCountAvg":66.0,"medianCount":59.5,"recentHaAvg":23137.0,"medianHa20":69.0,"recentHaAvgFmt":"23,137 ha","medianHa20Fmt":"68.93 ha","countRatio":1.11,"haRatio":335.69,"maxRatio":335.69,"status":"Watch"},{"code":"E","name":"Edson","recentCountAvg":100.7,"medianCount":104.5,"recentHaAvg":78646.0,"medianHa20":243.0,"recentHaAvgFmt":"78,646 ha","medianHa20Fmt":"242.96 ha","countRatio":0.96,"haRatio":323.7,"maxRatio":323.7,"status":"Watch"},{"code":"R","name":"Rocky","recentCountAvg":85.3,"medianCount":91.5,"recentHaAvg":35383.0,"medianHa20":483.0,"recentHaAvgFmt":"35,383 ha","medianHa20Fmt":"482.52 ha","countRatio":0.93,"haRatio":73.33,"maxRatio":73.33,"status":"Watch"},{"code":"P","name":"Peace River","recentCountAvg":140.7,"medianCount":124.5,"recentHaAvg":52635.0,"medianHa20":1229.0,"recentHaAvgFmt":"52,635 ha","medianHa20Fmt":"1,229 ha","countRatio":1.13,"haRatio":42.82,"maxRatio":42.82,"status":"Watch"},{"code":"S","name":"Slave Lake","recentCountAvg":173.0,"medianCount":167.0,"recentHaAvg":282851.0,"medianHa20":7101.0,"recentHaAvgFmt":"282,851 ha","medianHa20Fmt":"7,101 ha","countRatio":1.04,"haRatio":39.83,"maxRatio":39.83,"status":"Watch"},{"code":"L","name":"Lac La Biche","recentCountAvg":217.3,"medianCount":184.0,"recentHaAvg":36748.0,"medianHa20":1398.0,"recentHaAvgFmt":"36,748 ha","medianHa20Fmt":"1,398 ha","countRatio":1.18,"haRatio":26.28,"maxRatio":26.28,"status":"Watch"},{"code":"H","name":"High Level","recentCountAvg":162.7,"medianCount":194.0,"recentHaAvg":401910.0,"medianHa20":15468.0,"recentHaAvgFmt":"401,910 ha","medianHa20Fmt":"15,468 ha","countRatio":0.84,"haRatio":25.98,"maxRatio":25.98,"status":"Watch"},{"code":"M","name":"Fort McMurray","recentCountAvg":77.7,"medianCount":104.0,"recentHaAvg":244309.0,"medianHa20":40900.0,"recentHaAvgFmt":"244,309 ha","medianHa20Fmt":"40,900 ha","countRatio":0.75,"haRatio":5.97,"maxRatio":5.97,"status":"Watch"},{"code":"C","name":"Calgary","recentCountAvg":85.7,"medianCount":232.5,"recentHaAvg":44.0,"medianHa20":57.0,"recentHaAvgFmt":"44.30 ha","medianHa20Fmt":"56.83 ha","countRatio":0.37,"haRatio":0.78,"maxRatio":0.78,"status":"Normal"}],"annualStats":{"2006":{"count":1954,"totalHa":118761.87},"2007":{"count":1348,"totalHa":103668.54},"2008":{"count":1712,"totalHa":20786.91},"2009":{"count":1710,"totalHa":66947.44},"2010":{"count":1840,"totalHa":81223.74},"2011":{"count":1218,"totalHa":806054.64},"2012":{"count":1568,"totalHa":385657.86},"2013":{"count":1226,"totalHa":19575.84},"2014":{"count":1470,"totalHa":23704.53},"2015":{"count":1898,"totalHa":466330.48},"2016":{"count":1376,"totalHa":507134.11},"2017":{"count":1244,"totalHa":49130.33},"2018":{"count":1279,"totalHa":54882.68},"2019":{"count":1005,"totalHa":791838.41},"2020":{"count":723,"totalHa":3274.45},"2021":{"count":1342,"totalHa":54088.58},"2022":{"count":1276,"totalHa":131271.77},"2023":{"count":1132,"totalHa":2217295.31},"2024":{"count":1230,"totalHa":714873.63},"2025":{"count":1277,"totalHa":681919.8}},"top1pct":{"count":279,"totalHa":7080662.0,"allHa":7298421.0,"pct":97.0,"threshold":1671.0},"rtStats":{"C":{"medianLagHours":0.0,"validLags":3535,"withField":3634,"total":4442,"fieldCoverage":81.8,"lagCoverage":79.6},"E":{"medianLagHours":0.58,"validLags":1181,"withField":1256,"total":2313,"fieldCoverage":54.3,"lagCoverage":51.1},"G":{"medianLagHours":0.78,"validLags":898,"withField":999,"total":1885,"fieldCoverage":53.0,"lagCoverage":47.6},"H":{"medianLagHours":0.83,"validLags":2832,"withField":3125,"total":3970,"fieldCoverage":78.7,"lagCoverage":71.3},"L":{"medianLagHours":0.47,"validLags":2435,"withField":2623,"total":3515,"fieldCoverage":74.6,"lagCoverage":69.3},"M":{"medianLagHours":0.85,"validLags":1725,"withField":1831,"total":2068,"fieldCoverage":88.5,"lagCoverage":83.4},"P":{"medianLagHours":0.72,"validLags":1512,"withField":1609,"total":2522,"fieldCoverage":63.8,"lagCoverage":60.0},"R":{"medianLagHours":0.6,"validLags":1107,"withField":1191,"total":1991,"fieldCoverage":59.8,"lagCoverage":55.6},"S":{"medianLagHours":0.7,"validLags":2535,"withField":2733,"total":3739,"fieldCoverage":73.1,"lagCoverage":67.8},"W":{"medianLagHours":0.63,"validLags":761,"withField":821,"total":1383,"fieldCoverage":59.4,"lagCoverage":55.0}}};</script>
+<script>
+'use strict';
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+const REGION_MAP = {
+  C: 'Calgary', E: 'Edson', G: 'Grande Prairie', H: 'High Level',
+  L: 'Lac La Biche', M: 'Fort McMurray', P: 'Peace River',
+  R: 'Rocky', S: 'Slave Lake', W: 'Whitecourt'
+};
+const REGION_CODES = Object.keys(REGION_MAP);
+
+const REGION_LOCATION = {
+  H: 'Northern Alberta', M: 'Northeastern Alberta', S: 'North-central Alberta',
+  L: 'Central Alberta', G: 'Northwestern Alberta', P: 'Northwestern Alberta',
+  E: 'West-central Alberta', W: 'West-central Alberta',
+  C: 'Southern Alberta', R: 'Southwestern Alberta'
+};
+
+const DATA_PATH = 'knowledge/survey-data/fp-historical-wildfire-data-2006-2025.csv';
+const YEARS_ALL = Array.from({ length: 20 }, (_, i) => 2006 + i); // 2006–2025
+const RECENT_YEARS = new Set([2023, 2024, 2025]);
+const WATCH_THRESHOLD = 1.3;
+
+// Human causes: explicitly defined (not a "Lightning vs Human" binary shortcut).
+// Anything except Lightning, Undetermined, Under Investigation is considered human-related.
+const HUMAN_CAUSES = new Set([
+  'Recreation', 'Resident', 'Incendiary', 'Agriculture Industry',
+  'Forest Industry', 'Oil & Gas Industry', 'Other Industry',
+  'Power Line Industry', 'Government', 'Railroad', 'Prescribed Fire', 'Restart'
+]);
+
+// ============================================================
+// APPLICATION STATE
+// ============================================================
+let processedData = null;
+let selectedRegion = 'H'; // default: High Level (the gold-example area)
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
+// Derive region code from FIRE_NUMBER (first character)
+function getRegionCode(fireNumber) {
+  if (!fireNumber) return null;
+  const ch = fireNumber.trim().charAt(0).toUpperCase();
+  return REGION_MAP[ch] ? ch : null;
+}
+
+// Standard median (works on any numeric array)
+function medianOf(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+}
+
+// Linear-interpolation percentile (p = 0..100)
+function percentileOf(arr, p) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  if (s.length === 1) return s[0];
+  const idx = (p / 100) * (s.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return s[lo];
+  return s[lo] + (s[hi] - s[lo]) * (idx - lo);
+}
+
+// Format hectares: 2.33M ha / 5,179 ha / 0.20 ha
+function formatHa(ha) {
+  if (ha >= 1e6) return (ha / 1e6).toFixed(2) + 'M ha';
+  if (ha >= 1000) return Math.round(ha).toLocaleString('en-CA') + ' ha';
+  return ha.toFixed(2) + ' ha';
+}
+
+// Format percentage with explicit N: "14.3% (3,970 / 27,828)"
+function formatPct(count, total) {
+  const pct = (count / total * 100).toFixed(1);
+  return `${pct}% (${count.toLocaleString('en-CA')} / ${total.toLocaleString('en-CA')})`;
+}
+
+function fmtNum(n) {
+  return Math.round(n).toLocaleString('en-CA');
+}
+
+// ============================================================
+// CSV PARSING
+// ============================================================
+
+// Handle quoted fields (fields containing commas)
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (const ch of line) {
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function parseCSV(text) {
+  // Normalize line endings
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  if (!lines.length) return [];
+  const headers = parseCSVLine(lines[0]);
+  const fires = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = parseCSVLine(line);
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (parts[idx] !== undefined ? parts[idx] : ''); });
+    fires.push(obj);
+  }
+  return fires;
+}
+
+// ============================================================
+// DATA PROCESSING
+// ============================================================
+
+function processFireData(fires) {
+  const totalCount = fires.length;
+
+  // --- Build lookup structures ---
+  const byRegion = {};        // code -> fire[]
+  const byYear = {};          // year -> fire[]
+  const byRegionYear = {};    // code -> year -> fire[]
+
+  REGION_CODES.forEach(c => {
+    byRegion[c] = [];
+    byRegionYear[c] = {};
+    YEARS_ALL.forEach(y => { byRegionYear[c][y] = []; });
+  });
+  YEARS_ALL.forEach(y => { byYear[y] = []; });
+
+  // Annotate each fire with derived fields
+  for (const f of fires) {
+    const code = getRegionCode(f.FIRE_NUMBER);
+    const year = parseInt(f.YEAR, 10);
+    if (!code || !REGION_MAP[code] || isNaN(year)) continue;
+
+    f._code = code;
+    f._year = year;
+    // CURRENT_SIZE is the final hectares burned — use for all area math
+    f._size = parseFloat(f.CURRENT_SIZE) || 0;
+
+    byRegion[code].push(f);
+    if (byYear[year]) byYear[year].push(f);
+    if (byRegionYear[code][year]) byRegionYear[code][year].push(f);
+  }
+
+  const totalHa = fires.reduce((s, f) => s + (f._size || 0), 0);
+
+  // --- Per-region statistics ---
+  const regionStats = {};
+  for (const code of REGION_CODES) {
+    const rf = byRegion[code];
+    if (!rf.length) continue;
+
+    const sizes = rf.map(f => f._size);
+
+    // Cause mix from GENERAL_CAUSE (always present)
+    const causeCounts = {};
+    for (const f of rf) {
+      const c = f.GENERAL_CAUSE || 'Unknown';
+      causeCounts[c] = (causeCounts[c] || 0) + 1;
+    }
+    const sortedCauses = Object.entries(causeCounts)
+      .sort(([, a], [, b]) => b - a);
+
+    // Top 4 causes + aggregated "Other"
+    const TOP_N = 4;
+    const topCauses = [];
+    let otherCount = 0;
+    let otherCauseCount = 0;
+    sortedCauses.forEach(([cause, count], idx) => {
+      if (idx < TOP_N) {
+        topCauses.push({ cause, count, pct: count / rf.length * 100 });
+      } else {
+        otherCount += count;
+        otherCauseCount++;
+      }
+    });
+    if (otherCount > 0) {
+      topCauses.push({
+        cause: `Other (${otherCauseCount} cause${otherCauseCount > 1 ? 's' : ''})`,
+        count: otherCount,
+        pct: otherCount / rf.length * 100
+      });
+    }
+
+    // Human / lightning breakdown for Read paragraph and Ask FireWatch
+    const lightningCount = causeCounts['Lightning'] || 0;
+    let humanCount = 0;
+    for (const [c, n] of Object.entries(causeCounts)) {
+      if (HUMAN_CAUSES.has(c)) humanCount += n;
+    }
+
+    regionStats[code] = {
+      code,
+      name: REGION_MAP[code],
+      count: rf.length,
+      pctOfTotal: formatPct(rf.length, totalCount),
+      totalHa: rf.reduce((s, f) => s + f._size, 0),
+      // Report median + p90 + total — NEVER a bare mean
+      medianHa: medianOf(sizes),
+      p90Ha: percentileOf(sizes, 90),
+      causeCounts,
+      topCauses,
+      lightningCount,
+      lightningPct: lightningCount / rf.length * 100,
+      humanCount,
+      humanPct: humanCount / rf.length * 100,
+    };
+  }
+
+  // --- Watch list (per-spec definition) ---
+  // Flag = recent 3-yr mean annual ≥ 1.3× the 2006–2025 median annual
+  const watchList = [];
+  for (const code of REGION_CODES) {
+    if (!regionStats[code]) continue;
+
+    // Annual series for this region
+    const annualCounts = YEARS_ALL.map(y => (byRegionYear[code][y] || []).length);
+    const annualHa = YEARS_ALL.map(y =>
+      (byRegionYear[code][y] || []).reduce((s, f) => s + f._size, 0)
+    );
+
+    // Recent 3-year average (2023, 2024, 2025)
+    const recentIdxs = YEARS_ALL
+      .map((y, i) => RECENT_YEARS.has(y) ? i : -1)
+      .filter(i => i >= 0);
+
+    const recentCountAvg = recentIdxs.reduce((s, i) => s + annualCounts[i], 0) / recentIdxs.length;
+    const recentHaAvg = recentIdxs.reduce((s, i) => s + annualHa[i], 0) / recentIdxs.length;
+
+    // 20-year median annual
+    const medianCount = medianOf(annualCounts);
+    const medianHa20 = medianOf(annualHa);
+
+    const countRatio = medianCount > 0 ? recentCountAvg / medianCount : 0;
+    const haRatio = medianHa20 > 0 ? recentHaAvg / medianHa20 : 0;
+
+    watchList.push({
+      code,
+      name: REGION_MAP[code],
+      recentCountAvg,
+      medianCount,
+      recentHaAvg,
+      medianHa20,
+      countRatio,
+      haRatio,
+      maxRatio: Math.max(countRatio, haRatio),
+      status: (countRatio >= WATCH_THRESHOLD || haRatio >= WATCH_THRESHOLD) ? 'Watch' : 'Normal'
+    });
+  }
+  // Sort by the larger of the two ratios, descending
+  watchList.sort((a, b) => b.maxRatio - a.maxRatio);
+
+  // --- Annual statistics (all FPA combined) ---
+  const annualStats = {};
+  for (const y of YEARS_ALL) {
+    const yf = byYear[y] || [];
+    annualStats[y] = {
+      count: yf.length,
+      totalHa: yf.reduce((s, f) => s + f._size, 0)
+    };
+  }
+
+  // --- Top 1% analysis ---
+  // Sort all fires by size descending; top 1% count = ceil(N * 0.01)
+  const allSizes = fires
+    .map(f => f._size || 0)
+    .sort((a, b) => b - a);
+  const top1Count = Math.ceil(allSizes.length * 0.01);
+  const top1Ha = allSizes.slice(0, top1Count).reduce((s, h) => s + h, 0);
+
+  const top1pct = {
+    count: top1Count,
+    totalHa: top1Ha,
+    allHa: totalHa,
+    pct: totalHa > 0 ? (top1Ha / totalHa * 100).toFixed(1) : '0.0',
+    threshold: allSizes[top1Count - 1]  // smallest fire in the top 1%
+  };
+
+  // --- Response-time (stretch goal) ---
+  // Lag: REPORTED_DATE → FIRE_FIGHTING_START_DATE
+  // ~71% of fires have FIRE_FIGHTING_START_DATE; disclose the missing 29%
+  const rtByRegion = {};
+  REGION_CODES.forEach(c => { rtByRegion[c] = { lags: [], total: 0, withField: 0 }; });
+
+  for (const f of fires) {
+    const code = f._code;
+    if (!code || !rtByRegion[code]) continue;
+    rtByRegion[code].total++;
+
+    const repStr = f.REPORTED_DATE;
+    const ffsStr = f.FIRE_FIGHTING_START_DATE;
+    if (!ffsStr || !ffsStr.trim()) continue;
+    rtByRegion[code].withField++;
+    if (!repStr || !repStr.trim()) continue;
+
+    // Date format: "YYYY-MM-DD HH:MM" — replace space with T for Date constructor
+    const repDate = new Date(repStr.replace(' ', 'T'));
+    const ffsDate = new Date(ffsStr.replace(' ', 'T'));
+    if (isNaN(repDate.getTime()) || isNaN(ffsDate.getTime())) continue;
+
+    const lagHours = (ffsDate.getTime() - repDate.getTime()) / (1000 * 3600);
+    // Accept lags 0 to 365 days; negative lags = data anomaly, discard
+    if (lagHours >= 0 && lagHours <= 8760) {
+      rtByRegion[code].lags.push(lagHours);
+    }
+  }
+
+  const rtStats = {};
+  for (const code of REGION_CODES) {
+    const r = rtByRegion[code];
+    rtStats[code] = {
+      medianLagHours: r.lags.length ? medianOf(r.lags) : null,
+      validLags: r.lags.length,
+      withField: r.withField,
+      total: r.total,
+      fieldCoverage: r.total > 0 ? (r.withField / r.total * 100) : 0,
+      lagCoverage: r.total > 0 ? (r.lags.length / r.total * 100) : 0,
+    };
+  }
+
+  return { totalCount, totalHa, regionStats, watchList, annualStats, top1pct, rtStats };
+}
+
+// ============================================================
+// KNOWN-ANSWER TEST — High Level benchmark
+// Must match CLAUDE.md gold example within rounding tolerance.
+// ============================================================
+function runKnownAnswerTest(data) {
+  const hl = data.regionStats['H'];
+  if (!hl) {
+    console.error('Known-answer test: High Level (H) not found in processed data.');
+    return { passes: [], warns: ['High Level region not found'] };
+  }
+
+  const passes = [];
+  const warns = [];
+
+  function check(label, actual, expected, tol, fmt) {
+    const ok = Math.abs(actual - expected) <= tol;
+    const msg = `${label}: got ${fmt ? fmt(actual) : actual.toFixed(2)}, expected ~${fmt ? fmt(expected) : expected} (±${tol})`;
+    (ok ? passes : warns).push(msg);
+    return ok;
+  }
+
+  // Fire count
+  check('H fire count', hl.count, 3970, 5, fmtNum);
+
+  // Share of FPA total — 14.3% of 27,828
+  const expectedShare = 3970 / 27828 * 100;
+  check('H % of total', hl.count / data.totalCount * 100, expectedShare, 0.2,
+        v => v.toFixed(1) + '%');
+
+  // Total hectares ≈ 2.33M ha
+  check('H total ha (M)', hl.totalHa / 1e6, 2.33, 0.05, v => v.toFixed(3) + 'M');
+
+  // Median fire size ≈ 0.20 ha
+  check('H median ha', hl.medianHa, 0.20, 0.05, v => v.toFixed(2) + ' ha');
+
+  // 90th percentile ≈ 17.7 ha
+  check('H p90 ha', hl.p90Ha, 17.7, 1.5, v => v.toFixed(1) + ' ha');
+
+  // Cause counts
+  const lightning = hl.causeCounts['Lightning'] || 0;
+  check('H Lightning count', lightning, 1865, 5, fmtNum);
+  check('H Lightning %', lightning / hl.count * 100, 47.0, 0.5, v => v.toFixed(1) + '%');
+
+  const resident = hl.causeCounts['Resident'] || 0;
+  check('H Resident count', resident, 752, 5, fmtNum);
+  check('H Resident %', resident / hl.count * 100, 18.9, 0.5, v => v.toFixed(1) + '%');
+
+  const incendiary = hl.causeCounts['Incendiary'] || 0;
+  check('H Incendiary count', incendiary, 698, 5, fmtNum);
+  check('H Incendiary %', incendiary / hl.count * 100, 17.6, 0.5, v => v.toFixed(1) + '%');
+
+  const agri = hl.causeCounts['Agriculture Industry'] || 0;
+  check('H Agriculture count', agri, 189, 5, fmtNum);
+  check('H Agriculture %', agri / hl.count * 100, 4.8, 0.5, v => v.toFixed(1) + '%');
+
+  console.group('%c=== FireWatch Known-Answer Test: High Level ===', 'font-weight:bold');
+  passes.forEach(p => console.log('%c✅ ' + p, 'color:green'));
+  warns.forEach(w => console.warn('❌ ' + w));
+  if (warns.length === 0) {
+    console.log('%c All checks passed.', 'color:green;font-weight:bold');
+  } else {
+    console.warn(`${warns.length} check(s) failed — dashboard may be using data incorrectly.`);
+  }
+  console.groupEnd();
+
+  return { passes, warns };
+}
+
+// ============================================================
+// RENDERING — Scope badge
+// ============================================================
+function renderScopeBadge(totalCount) {
+  const el = document.getElementById('badge-count');
+  if (el) el.textContent = `${fmtNum(totalCount)} fires`;
+}
+
+// ============================================================
+// RENDERING — Watch List
+// ============================================================
+function renderWatchList(watchList) {
+  const container = document.getElementById('signals');
+  container.innerHTML = '';
+  watchList.forEach(w => {
+    const isHot = w.status === 'Watch';
+    const isSel = w.code === selectedRegion;
+    const div = document.createElement('div');
+    div.className = `sig${isHot ? ' hot' : ''}${isSel ? ' sel' : ''}`;
+    div.dataset.region = w.code;
+
+    // Show count ratio as headline (count is the more stable metric; ha is skewed by escape years)
+    // Show both explicitly so the analyst sees the full picture
+    const countArrow = w.countRatio >= WATCH_THRESHOLD ? '▲' : (w.countRatio >= 1.0 ? '●' : '▼');
+    const haArrow = w.haRatio >= WATCH_THRESHOLD ? '▲' : (w.haRatio >= 1.0 ? '●' : '▼');
+    const deltaClass = w.countRatio >= WATCH_THRESHOLD ? '' : ' calm';
+
+    // Format ha ratio: cap display at 999× to keep cards readable; full value in tooltip
+    const haRatioDisplay = w.haRatio > 999
+      ? `${Math.round(w.haRatio).toLocaleString()}×`
+      : `${w.haRatio.toFixed(2)}×`;
+    const haTitle = `recent avg ${formatHa(w.recentHaAvg)}/yr ÷ 20-yr median ${formatHa(w.medianHa20)}/yr = ${w.haRatio.toFixed(1)}×`;
+    const countTitle = `recent avg ${w.recentCountAvg.toFixed(0)} fires/yr ÷ 20-yr median ${w.medianCount.toFixed(0)} fires/yr`;
+
+    div.innerHTML = `
+      <div class="name">${w.name}</div>
+      <div class="sig-ratios">
+        <div class="sig-ratio-row" title="${countTitle}">
+          <span class="sig-label">count</span>
+          <span class="sig-val${w.countRatio >= WATCH_THRESHOLD ? ' hot-val' : ''}">${countArrow} ${w.countRatio.toFixed(2)}×</span>
+        </div>
+        <div class="sig-ratio-row" title="${haTitle}">
+          <span class="sig-label">ha</span>
+          <span class="sig-val${w.haRatio >= WATCH_THRESHOLD ? ' hot-val' : ''}">${haArrow} ${haRatioDisplay}</span>
+        </div>
+      </div>
+      <div class="vs" style="font-weight:600;margin-top:4px">${w.status}</div>
+    `;
+    div.addEventListener('click', () => {
+      selectedRegion = w.code;
+      renderWatchList(watchList);
+      renderRegionBenchmark();
+      renderAskPanel();
+    });
+    container.appendChild(div);
+  });
+}
+
+// ============================================================
+// RENDERING — Region Benchmark (centrepiece)
+// ============================================================
+function renderRegionBenchmark() {
+  const container = document.getElementById('benchmark');
+  if (!processedData) return;
+
+  const rs = processedData.regionStats[selectedRegion];
+  if (!rs) return;
+  const wl = processedData.watchList.find(w => w.code === selectedRegion);
+  if (!wl) return;
+
+  // Cause bars — proportional to the top cause count
+  const maxCauseCount = rs.topCauses[0] ? rs.topCauses[0].count : 1;
+  const causesHtml = rs.topCauses.map(tc => {
+    const barWidth = Math.round((tc.count / maxCauseCount) * 240);
+    let barColor;
+    if (tc.cause === 'Lightning') barColor = 'var(--light)';
+    else if (tc.cause.startsWith('Other')) barColor = '#cbbfae';
+    else barColor = 'var(--human)';
+
+    return `
+      <div class="cause-row">
+        <span class="lbl">${tc.cause}</span>
+        <span class="bar" style="width:${barWidth}px;background:${barColor}"></span>
+        <span class="pct">${tc.pct.toFixed(1)}% (${fmtNum(tc.count)} / ${fmtNum(rs.count)})</span>
+      </div>`;
+  }).join('');
+
+  const watchTagHtml = wl.status === 'Watch'
+    ? `<span class="tag tag-watch">⚑ Watch</span>`
+    : `<span class="tag tag-normal">● Normal</span>`;
+
+  const readText = generateRead(rs, wl);
+
+  container.innerHTML = `
+    <span class="tag">Selected Area</span>${watchTagHtml}
+    <h3>${rs.name} forest area</h3>
+    <div class="place">${REGION_LOCATION[selectedRegion] || ''} · fire-number prefix "${selectedRegion}" · 2006–2025 · FPA only</div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="v">${fmtNum(rs.count)}</div>
+        <div class="l">fires (2006–2025)</div>
+        <div class="n">${rs.pctOfTotal} of FPA total</div>
+      </div>
+      <div class="stat">
+        <div class="v">${formatHa(rs.totalHa)}</div>
+        <div class="l">total burned</div>
+        <div class="n">FPA only — not all-Alberta</div>
+      </div>
+      <div class="stat">
+        <div class="v">${rs.medianHa.toFixed(2)} ha</div>
+        <div class="l">median fire size</div>
+        <div class="n">N = ${fmtNum(rs.count)}</div>
+      </div>
+      <div class="stat">
+        <div class="v">${rs.p90Ha.toFixed(1)} ha</div>
+        <div class="l">90th percentile</div>
+        <div class="n">tail, not typical</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">
+      CAUSE MIX — GENERAL_CAUSE field (N = ${fmtNum(rs.count)}) · FPA only
+    </div>
+    ${causesHtml}
+
+    <div class="read"><b>Read:</b> ${readText}</div>
+
+    <div class="watchlist-detail" style="margin-top:14px;font-size:12px;color:var(--muted);">
+      Watch-list: count ratio ${wl.countRatio.toFixed(2)}×
+      (recent avg ${wl.recentCountAvg.toFixed(0)} fires/yr ÷ 20-yr median ${wl.medianCount.toFixed(0)} fires/yr) ·
+      hectares ratio ${wl.haRatio.toFixed(2)}×
+      (recent avg ${formatHa(wl.recentHaAvg)}/yr ÷ 20-yr median ${formatHa(wl.medianHa20)}/yr) ·
+      Watch threshold = ≥ ${WATCH_THRESHOLD}×
+    </div>
+  `;
+}
+
+// Generate the plain-language "Read" paragraph.
+// No causal claims — uses "associated with" / "historical pattern suggests".
+function generateRead(rs, wl) {
+  const name = rs.name;
+  const parts = [];
+
+  parts.push(
+    `${name} recorded ${fmtNum(rs.count)} fires over 2006–2025 ` +
+    `(${formatHa(rs.totalHa)} total burned area, FPA only).`
+  );
+
+  if (wl.status === 'Watch') {
+    parts.push(
+      `Recent activity is above its historical baseline ` +
+      `(count ratio ${wl.countRatio.toFixed(2)}×, hectares ratio ${wl.haRatio.toFixed(2)}× — ` +
+      `flagged Watch at ≥ ${WATCH_THRESHOLD}×). ` +
+      `This is a historical benchmarking signal, not a forecast.`
+    );
+  } else {
+    parts.push(
+      `Recent activity tracks near its historical norm — ` +
+      `both count (${wl.countRatio.toFixed(2)}×) and hectares (${wl.haRatio.toFixed(2)}×) ` +
+      `ratios are below the ${WATCH_THRESHOLD}× Watch threshold.`
+    );
+  }
+
+  const lPct = rs.lightningPct.toFixed(0);
+  const hPct = rs.humanPct.toFixed(0);
+
+  if (rs.lightningPct > 55) {
+    parts.push(
+      `Lightning accounts for ${lPct}% of fires here — the historical pattern suggests ` +
+      `detection reach and suppression capacity are the primary levers for this area.`
+    );
+  } else if (rs.humanPct > 55) {
+    parts.push(
+      `Human-related causes (defined as all causes except Lightning, Undetermined, ` +
+      `and Under Investigation) represent ${hPct}% of fires — the historical pattern ` +
+      `suggests prevention effort is the primary lever.`
+    );
+  } else {
+    parts.push(
+      `Lightning (${lPct}%) and human-related causes (${hPct}%) are nearly even here — ` +
+      `unlike a pure-lightning northern area, the historical pattern suggests both ` +
+      `detection/suppression capacity and prevention effort are relevant levers.`
+    );
+  }
+
+  parts.push(
+    `The analyst should verify whether this pattern holds for the most recent years ` +
+    `before making a recommendation. *(FPA-only; cost and forecast out of scope.)*`
+  );
+
+  return parts.join(' ');
+}
+
+// ============================================================
+// RENDERING — Count vs Hectares dual story
+// ============================================================
+function renderDualStory(top1pct, regionStats) {
+  const container = document.getElementById('dual-story');
+
+  const allRegions = Object.values(regionStats);
+  const mostFires = [...allRegions].sort((a, b) => b.count - a.count)[0];
+  const mostHa = [...allRegions].sort((a, b) => b.totalHa - a.totalHa)[0];
+
+  let contrastHtml = '';
+  if (mostFires.code !== mostHa.code) {
+    const ratio = (mostHa.totalHa / mostFires.totalHa).toFixed(0);
+    contrastHtml = `
+      <div class="box" style="grid-column:1/-1;font-size:13px;">
+        <b>Regional contrast:</b>
+        ${mostFires.name} has the highest fire count (${fmtNum(mostFires.count)}) but only ${formatHa(mostFires.totalHa)} total burned.
+        ${mostHa.name} has fewer fires (${fmtNum(mostHa.count)}) but ${formatHa(mostHa.totalHa)} total — approximately ${ratio}× more area burned.
+        This is why count and burned area must be shown separately and never collapsed into one metric.
+        <span style="color:#b9ae9f;"> (FPA only.)</span>
+      </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="box">
+      <div class="big">${mostFires.name}</div>
+      <div class="cap">Most fires FPA-wide: <b>${fmtNum(mostFires.count)}</b> fires — but only ${formatHa(mostFires.totalHa)} total burned. High-frequency small fires dominate the count.</div>
+    </div>
+    <div class="box" style="border-left:4px solid var(--fire)">
+      <div class="big">Top 1% of fires</div>
+      <div class="cap">
+        <b>= ${top1pct.pct}% of all FPA hectares burned</b>
+        (${fmtNum(top1pct.count)} fires · ${formatHa(top1pct.totalHa)} of ${formatHa(top1pct.allHa)}).
+        Fire count and burned area tell different stories — the dashboard never collapses them.
+      </div>
+    </div>
+    ${contrastHtml}
+  `;
+}
+
+// ============================================================
+// RENDERING — Annual Trend Chart (SVG, computed from data)
+// ============================================================
+function renderTrend(annualStats) {
+  const container = document.getElementById('trend-section');
+
+  const years = YEARS_ALL;
+  const counts = years.map(y => annualStats[y] ? annualStats[y].count : 0);
+  const has = years.map(y => annualStats[y] ? annualStats[y].totalHa : 0);
+
+  const maxCount = Math.max(...counts);
+  const maxHa = Math.max(...has);
+
+  const W = 960, H = 130, PAD_L = 10, PAD_R = 10;
+  const totalBarWidth = W - PAD_L - PAD_R;
+  const barSlot = totalBarWidth / years.length;
+  const barW = Math.floor(barSlot * 0.75);
+  const barGap = barSlot - barW;
+
+  // X position for bar i
+  function bx(i) { return PAD_L + i * barSlot; }
+
+  // 2012 marker position (left edge of 2012 bar)
+  const idx2012 = years.indexOf(2012);
+  const x2012 = bx(idx2012) + barW / 2;
+
+  function makeBars(values, maxVal, colorNormal, colorRecent) {
+    return values.map((v, i) => {
+      if (!v) return '';
+      const h = (v / maxVal) * H;
+      const x = bx(i);
+      const y = H - h;
+      const isRecent = RECENT_YEARS.has(years[i]);
+      const fill = isRecent ? colorRecent : colorNormal;
+      const label = isRecent
+        ? `${years[i]}: ${formatHa ? formatHa(v) : v} (recent)`
+        : `${years[i]}: ${v}`;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" fill="${fill}" opacity="0.9"><title>${label}</title></rect>`;
+    }).join('');
+  }
+
+  function makeYearLabels(y_offset) {
+    return years.map((y, i) => {
+      if (y % 2 !== 0) return '';
+      const x = bx(i) + barW / 2;
+      return `<text x="${x.toFixed(1)}" y="${y_offset}" text-anchor="middle" font-size="10" fill="#7a6f64">'${String(y).slice(2)}</text>`;
+    }).join('');
+  }
+
+  // Peak labels
+  const peakCountIdx = counts.indexOf(maxCount);
+  const peakHaIdx = has.indexOf(maxHa);
+
+  function peakLabel(idx, val, fmt) {
+    const x = bx(idx) + barW / 2;
+    return `<text x="${x.toFixed(1)}" y="12" text-anchor="middle" font-size="9.5" fill="#a93226">${years[idx]}: ${fmt(val)}</text>`;
+  }
+
+  container.innerHTML = `
+    <div class="trend-note">
+      Dark red = 2023–2025 (recent 3-year period). Hover bars for values.
+      Dashed vertical line = 2012 cause-category reclassification.
+    </div>
+
+    <div style="font-size:12px;color:var(--muted);margin:10px 0 3px;font-weight:600;">
+      FIRE COUNT BY YEAR — all FPA
+    </div>
+    <svg viewBox="0 0 ${W} ${H + 20}" width="100%" style="overflow:visible">
+      ${makeBars(counts, maxCount, '#d4b8a8', '#8b2020')}
+      ${makeYearLabels(H + 14)}
+      <line x1="${x2012.toFixed(1)}" y1="0" x2="${x2012.toFixed(1)}" y2="${H}" stroke="#7a6f64" stroke-dasharray="4,3" stroke-width="1.5"/>
+      <text x="${(x2012 + 4).toFixed(1)}" y="22" font-size="9" fill="#7a6f64">2012</text>
+      ${peakLabel(peakCountIdx, maxCount, fmtNum)}
+    </svg>
+
+    <div style="font-size:12px;color:var(--muted);margin:18px 0 3px;font-weight:600;">
+      TOTAL HECTARES BURNED BY YEAR — all FPA
+    </div>
+    <svg viewBox="0 0 ${W} ${H + 20}" width="100%" style="overflow:visible">
+      ${makeBars(has, maxHa, '#c0392b', '#7a1010')}
+      ${makeYearLabels(H + 14)}
+      <line x1="${x2012.toFixed(1)}" y1="0" x2="${x2012.toFixed(1)}" y2="${H}" stroke="#7a6f64" stroke-dasharray="4,3" stroke-width="1.5"/>
+      <text x="${(x2012 + 4).toFixed(1)}" y="22" font-size="9" fill="#7a6f64">2012</text>
+      ${peakLabel(peakHaIdx, maxHa, formatHa)}
+    </svg>
+
+    <div class="legend">
+      Dark red bars = 2023–2025 (recent benchmark window). ·
+      Dashed line = <b>2012 cause-category reclassification</b>:
+      Agriculture Industry and Government split out from Resident and Other Industry.
+      ⚠ Any cross-2012 cause trend will show a structural break at this line and must carry this note.
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDERING — Response Time (stretch goal)
+// ============================================================
+function renderResponseTime(rtStats) {
+  const container = document.getElementById('response-time');
+
+  const totalValid = Object.values(rtStats).reduce((s, r) => s + r.validLags, 0);
+  const totalFires = Object.values(rtStats).reduce((s, r) => s + r.total, 0);
+
+  if (totalValid === 0) {
+    container.innerHTML = `
+      <div class="ph">
+        Stretch goal — field pair identified as REPORTED_DATE → FIRE_FIGHTING_START_DATE.
+        Date parsing returned no valid lags. Check date format in source CSV.
+      </div>`;
+    return;
+  }
+
+  // Sort regions by median lag descending
+  const sorted = REGION_CODES
+    .filter(c => rtStats[c] && rtStats[c].medianLagHours !== null)
+    .sort((a, b) => rtStats[b].medianLagHours - rtStats[a].medianLagHours);
+
+  const rows = sorted.map(code => {
+    const r = rtStats[code];
+    const lagStr = r.medianLagHours < 1
+      ? `${(r.medianLagHours * 60).toFixed(0)} min`
+      : `${r.medianLagHours.toFixed(1)} hrs`;
+    return `
+      <tr>
+        <td>${REGION_MAP[code]}</td>
+        <td>${lagStr}</td>
+        <td>${r.fieldCoverage.toFixed(1)}% (${fmtNum(r.withField)} / ${fmtNum(r.total)})</td>
+      </tr>`;
+  }).join('');
+
+  // Also show regions with no FIRE_FIGHTING_START_DATE data
+  const noData = REGION_CODES
+    .filter(c => rtStats[c] && rtStats[c].medianLagHours === null);
+  const noDataRows = noData.map(code => {
+    const r = rtStats[code];
+    return `
+      <tr>
+        <td>${REGION_MAP[code]}</td>
+        <td class="ph">—</td>
+        <td>${r.fieldCoverage.toFixed(1)}% (${fmtNum(r.withField)} / ${fmtNum(r.total)})</td>
+      </tr>`;
+  }).join('');
+
+  const overallCoverage = totalFires > 0 ? (totalValid / totalFires * 100).toFixed(1) : '0.0';
+
+  container.innerHTML = `
+    <div class="rt-note">
+      Lag = REPORTED_DATE → FIRE_FIGHTING_START_DATE (this exact pair, per spec).
+      Sorted by median lag, longest first. Only fires with both fields and lag ≥ 0 are included.
+    </div>
+    <table class="placeholder">
+      <tr>
+        <th>Forest area</th>
+        <th>Median report→suppression lag</th>
+        <th>Field coverage (fires with FIRE_FIGHTING_START_DATE)</th>
+      </tr>
+      ${rows}
+      ${noDataRows}
+    </table>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+      ⚠ ${fmtNum(totalValid)} of ${fmtNum(totalFires)} fires (${overallCoverage}%) have valid lag data.
+      The ~29% missing FIRE_FIGHTING_START_DATE is disclosed, not assumed random —
+      fires missing this field may differ systematically from those with it.
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDERING — Ask FireWatch panel (rule-based, no LLM)
+// ============================================================
+function renderAskPanel() {
+  const container = document.getElementById('ask-panel');
+  if (!processedData) return;
+
+  const regionName = REGION_MAP[selectedRegion];
+
+  container.innerHTML = `
+    <div class="ask-desc">
+      Rule-based explanations grounded in computed data. No API call — all answers derived from the CSV.
+      Currently showing data for <b>${regionName}</b>.
+    </div>
+    <div class="ask-questions">
+      <button class="ask-btn" data-qid="1">Why is this area on the watch list?</button>
+      <button class="ask-btn" data-qid="2">What is the main cause mix here?</button>
+      <button class="ask-btn" data-qid="3">Why show both fire count and hectares?</button>
+    </div>
+    <div id="ask-answer" class="ask-answer"></div>
+  `;
+
+  container.querySelector('.ask-questions').addEventListener('click', e => {
+    const btn = e.target.closest('.ask-btn');
+    if (!btn) return;
+    const qid = parseInt(btn.dataset.qid, 10);
+    const answer = buildAnswer(qid);
+    const el = document.getElementById('ask-answer');
+    if (el) el.innerHTML = `<div class="ask-resp">${answer}</div>`;
+  });
+}
+
+function buildAnswer(qid) {
+  const rs = processedData.regionStats[selectedRegion];
+  const wl = processedData.watchList.find(w => w.code === selectedRegion);
+  const top1 = processedData.top1pct;
+  const name = rs.name;
+
+  if (qid === 1) {
+    if (wl.status === 'Watch') {
+      return `<b>${name} is on the Watch list</b> because its recent fire activity is above its historical baseline. ` +
+        `Count ratio: ${wl.countRatio.toFixed(2)}× ` +
+        `(recent 3-yr avg ${wl.recentCountAvg.toFixed(0)} fires/yr ÷ 20-yr median ${wl.medianCount.toFixed(0)} fires/yr). ` +
+        `Hectares ratio: ${wl.haRatio.toFixed(2)}× ` +
+        `(recent avg ${formatHa(wl.recentHaAvg)}/yr ÷ 20-yr median ${formatHa(wl.medianHa20)}/yr). ` +
+        `An area is flagged Watch when either ratio is ≥ ${WATCH_THRESHOLD}×. ` +
+        `<b>This does not forecast next season</b> — it is a historical benchmarking signal for analyst review. ` +
+        `The analyst owns the recommendation.`;
+    } else {
+      return `<b>${name} is not on the Watch list.</b> ` +
+        `Count ratio: ${wl.countRatio.toFixed(2)}× · Hectares ratio: ${wl.haRatio.toFixed(2)}×. ` +
+        `Both are below the ${WATCH_THRESHOLD}× Watch threshold. ` +
+        `Recent activity (2023–2025) tracks near the 20-year historical norm for this area. ` +
+        `The analyst should confirm by reviewing the annual trend.`;
+    }
+  }
+
+  if (qid === 2) {
+    const top3 = rs.topCauses.slice(0, 3);
+    const topStr = top3.map(t =>
+      `${t.cause}: ${t.pct.toFixed(1)}% (${fmtNum(t.count)} / ${fmtNum(rs.count)})`
+    ).join('; ');
+
+    return `For <b>${name}</b> over 2006–2025 (N = ${fmtNum(rs.count)} fires, FPA only). ` +
+      `Top causes by count: ${topStr}. ` +
+      `Lightning: ${rs.lightningPct.toFixed(1)}% (${fmtNum(rs.lightningCount)} fires). ` +
+      `Human-related causes (defined as: Recreation, Resident, Incendiary, Agriculture Industry, ` +
+      `Forest Industry, Oil &amp; Gas Industry, Other Industry, Power Line Industry, ` +
+      `Government, Railroad, Prescribed Fire): ${rs.humanPct.toFixed(1)}% (${fmtNum(rs.humanCount)} fires). ` +
+      `Source: GENERAL_CAUSE field. ` +
+      `⚠ Cause categories changed in 2012: Agriculture Industry and Government were split out ` +
+      `from Resident and Other Industry. Any cross-2012 cause trend has a structural break.`;
+  }
+
+  if (qid === 3) {
+    return `The top 1% of fires (${fmtNum(top1.count)} fires, threshold ≥ ${top1.threshold.toFixed(0)} ha) ` +
+      `account for approximately <b>${top1.pct}%</b> of all FPA hectares burned ` +
+      `(${formatHa(top1.totalHa)} of ${formatHa(top1.allHa)} total). ` +
+      `Fire count and burned area tell fundamentally different stories. ` +
+      `An area with many small fires (high count, low hectares) needs a different response than ` +
+      `one with few large fires (low count, high hectares). ` +
+      `Showing only count hides catastrophic fire years; ` +
+      `showing only hectares hides high-frequency human-caused fire areas. ` +
+      `Both metrics are shown so the analyst can reason about which lever — ` +
+      `prevention (reduces fire count) or suppression capacity (reduces large escapes) — ` +
+      `is most relevant for each forest area.`;
+  }
+
+  return 'Question not recognized.';
+}
+
+// ============================================================
+// VALIDATION BANNER
+// ============================================================
+function showValidationWarning(warns) {
+  if (!warns.length) return;
+  const el = document.getElementById('validation-warn');
+  el.style.display = 'block';
+  el.innerHTML =
+    `<b>⚠ Known-Answer Test: ${warns.length} High Level value(s) did not match expected.</b>` +
+    `<ul>${warns.map(w => `<li>${w}</li>`).join('')}</ul>` +
+    `Open the browser developer console (F12) for full details.`;
+}
+
+
+// ── STANDALONE MODE ──────────────────────────────────────────────────────────
+// All statistics were pre-computed by build-standalone.py from the CSV.
+// No CSV fetch needed; data is embedded in window.__PRECOMPUTED__.
+async function init() {
+  const loadStatus  = document.getElementById('load-status');
+  const loadError   = document.getElementById('load-error');
+  const dashboard   = document.getElementById('dashboard');
+
+  try {
+    loadStatus.textContent = 'Loading pre-computed data…';
+
+    if (!window.__PRECOMPUTED__) {
+      throw new Error('Embedded data not found. File may be corrupt.');
+    }
+
+    processedData = window.__PRECOMPUTED__;
+
+    // annualStats keys are strings in JSON; convert back to numbers
+    const annualRaw = processedData.annualStats;
+    processedData.annualStats = {};
+    Object.keys(annualRaw).forEach(k => {
+      processedData.annualStats[parseInt(k, 10)] = annualRaw[k];
+    });
+
+    // causeCounts values from Python need no conversion
+    // Run the known-answer test
+    const testResult = runKnownAnswerTest(processedData);
+    showValidationWarning(testResult.warns);
+
+    loadStatus.style.display = 'none';
+    dashboard.style.display  = 'block';
+
+    renderScopeBadge(processedData.totalCount);
+    renderWatchList(processedData.watchList);
+    renderRegionBenchmark();
+    renderDualStory(processedData.top1pct, processedData.regionStats);
+    renderTrend(processedData.annualStats);
+    renderResponseTime(processedData.rtStats);
+    renderAskPanel();
+
+    // Wire up governance features now that DOM + data are both ready
+    initModal();
+    initThresholdControl();
+    renderAuditLog();
+
+    console.log('FireWatch Alberta (standalone) loaded.',
+      processedData.totalCount.toLocaleString(), 'fires pre-computed.');
+  } catch (err) {
+    loadStatus.style.display = 'none';
+    loadError.style.display  = 'block';
+    loadError.innerHTML = '<b>Error:</b> ' + err.message;
+    console.error('FireWatch standalone error:', err);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+
+// ============================================================
+// FEATURE: OVERRIDE / AUDIT LOG
+// ============================================================
+
+let watchThreshold = 1.3;
+let currentAnalyst = localStorage.getItem('firewatchAnalyst') || 'Analyst';
+let overrideLog = JSON.parse(localStorage.getItem('firewatchOverrides') || '[]');
+
+function saveLog() {
+  localStorage.setItem('firewatchOverrides', JSON.stringify(overrideLog));
+}
+
+function renderAuditLog() {
+  const el = document.getElementById('audit-log-body');
+  if (!el) return;
+  if (!overrideLog.length) {
+    el.innerHTML = '<div class="audit-empty">No overrides recorded this session. Change the threshold above to generate an entry.</div>';
+    return;
+  }
+  el.innerHTML = overrideLog.slice().reverse().map(e => `
+    <div class="audit-entry">
+      <div class="ae-head">
+        <span class="ae-who">${escHtml(e.analystId)}</span>
+        <span class="ae-time">${new Date(e.timestamp).toLocaleString('en-CA')}</span>
+      </div>
+      <div class="ae-change">
+        ${escHtml(e.panel)} · original ${escHtml(String(e.originalValue))} → new ${escHtml(String(e.newValue))}
+      </div>
+      <div class="ae-reason"><b>Reason:</b> ${escHtml(e.reason)}</div>
+    </div>`).join('');
+}
+
+function logOverride(panel, originalValue, newValue, analystId, reason) {
+  overrideLog.push({ timestamp: Date.now(), analystId, panel, originalValue, newValue, reason });
+  saveLog();
+  renderAuditLog();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// FEATURE: MODAL (promise-based)
+// ============================================================
+
+let _modalResolve = null;
+
+function showModal({ title, sub, bodyHtml, confirmLabel = 'Apply & log' }) {
+  return new Promise(resolve => {
+    _modalResolve = resolve;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-sub').textContent = sub;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    document.getElementById('modal-confirm').textContent = confirmLabel;
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    const first = document.querySelector('#modal-body input, #modal-body textarea');
+    if (first) setTimeout(() => first.focus(), 50);
+  });
+}
+
+function closeModal(result) {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
+}
+
+function initModal() {
+  document.getElementById('modal-cancel').addEventListener('click', () => closeModal(null));
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal(null);
+  });
+  document.getElementById('modal-confirm').addEventListener('click', () => {
+    const inputs = {};
+    document.querySelectorAll('#modal-body [data-field]').forEach(el => {
+      inputs[el.dataset.field] = el.value.trim();
+    });
+    closeModal(inputs);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal(null);
+  });
+}
+
+// ============================================================
+// FEATURE: THRESHOLD SLIDER + ANALYST BUTTON
+// ============================================================
+
+function updateAnalystLabel() {
+  const el = document.getElementById('analyst-label');
+  if (el) el.textContent = `Logged as: ${currentAnalyst}`;
+}
+
+async function promptThresholdChange(newVal) {
+  const oldVal = watchThreshold;
+  const result = await showModal({
+    title: 'Log this threshold change',
+    sub: `Changing Watch threshold from ${oldVal.toFixed(1)}× to ${newVal.toFixed(1)}×.`,
+    bodyHtml: `
+      <label>Analyst name</label>
+      <input type="text" data-field="analyst" value="${escHtml(currentAnalyst)}" placeholder="Your name">
+      <label>Reason for change</label>
+      <textarea data-field="reason" placeholder="Why are you changing the threshold? (required)"></textarea>`,
+  });
+
+  if (!result || !result.reason) {
+    // User cancelled — revert slider
+    const slider = document.getElementById('thresh-slider');
+    if (slider) slider.value = watchThreshold;
+    document.getElementById('thresh-display').textContent = watchThreshold.toFixed(1) + '×';
+    return;
+  }
+
+  if (result.analyst) {
+    currentAnalyst = result.analyst;
+    localStorage.setItem('firewatchAnalyst', currentAnalyst);
+    updateAnalystLabel();
+  }
+
+  logOverride('Watch threshold', oldVal.toFixed(1) + '×', newVal.toFixed(1) + '×', currentAnalyst, result.reason);
+  watchThreshold = newVal;
+
+  // Re-render panels that depend on the threshold
+  if (processedData) {
+    renderWatchList(processedData.watchList);
+    renderRegionBenchmark();
+    renderAskPanel();
+  }
+}
+
+function initThresholdControl() {
+  const slider = document.getElementById('thresh-slider');
+  const display = document.getElementById('thresh-display');
+  if (!slider) return;
+
+  updateAnalystLabel();
+
+  slider.addEventListener('input', () => {
+    display.textContent = parseFloat(slider.value).toFixed(1) + '×';
+  });
+
+  slider.addEventListener('change', () => {
+    const newVal = parseFloat(slider.value);
+    if (Math.abs(newVal - watchThreshold) < 0.001) return;
+    promptThresholdChange(newVal);
+  });
+
+  document.getElementById('set-analyst-btn').addEventListener('click', async () => {
+    const result = await showModal({
+      title: 'Set analyst name',
+      sub: 'This name is recorded with every override entry.',
+      bodyHtml: `<label>Analyst name</label>
+        <input type="text" data-field="analyst" value="${escHtml(currentAnalyst)}">`,
+      confirmLabel: 'Save',
+    });
+    if (result && result.analyst) {
+      currentAnalyst = result.analyst;
+      localStorage.setItem('firewatchAnalyst', currentAnalyst);
+      updateAnalystLabel();
+    }
+  });
+
+  document.getElementById('export-log-btn').addEventListener('click', () => {
+    const json = JSON.stringify(overrideLog, null, 2);
+    navigator.clipboard.writeText(json).then(() => {
+      const btn = document.getElementById('export-log-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1800);
+    });
+  });
+
+  document.getElementById('clear-log-btn').addEventListener('click', async () => {
+    const result = await showModal({
+      title: 'Clear audit log?',
+      sub: 'This removes all override entries from localStorage. Cannot be undone.',
+      bodyHtml: `<label>Analyst name (logged with clear action)</label>
+        <input type="text" data-field="analyst" value="${escHtml(currentAnalyst)}">
+        <label>Reason</label>
+        <textarea data-field="reason" placeholder="Why are you clearing the log?"></textarea>`,
+      confirmLabel: 'Clear log',
+    });
+    if (!result || !result.reason) return;
+    logOverride('Audit log', `${overrideLog.length} entries`, '0 entries (cleared)', result.analyst || currentAnalyst, result.reason);
+    // Keep the clear entry itself, remove everything before it
+    const clearEntry = overrideLog[overrideLog.length - 1];
+    overrideLog = [clearEntry];
+    saveLog();
+    renderAuditLog();
+  });
+}
+
+// ============================================================
+// FEATURE: DATA TRAIL DRILL-DOWN
+// ============================================================
+
+let _csvPromise = null;
+let _csvByRegionYear = null; // code -> year -> {count, totalHa}
+
+function loadCsvForDrilldown() {
+  if (_csvPromise) return _csvPromise;
+  const paths = [
+    'data/raw/fp-historical-wildfire-data-2006-2025.csv',
+    'knowledge/survey-data/fp-historical-wildfire-data-2006-2025.csv'
+  ];
+  _csvPromise = (async () => {
+    for (const path of paths) {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) continue;
+        const text = await res.text();
+        return buildRegionYearIndex(parseCSV(text));
+      } catch (_) { /* try next */ }
+    }
+    return null;
+  })();
+  return _csvPromise;
+}
+
+function buildRegionYearIndex(fires) {
+  const idx = {};
+  REGION_CODES.forEach(c => { idx[c] = {}; YEARS_ALL.forEach(y => { idx[c][y] = { count: 0, totalHa: 0 }; }); });
+  for (const f of fires) {
+    const code = getRegionCode(f.FIRE_NUMBER);
+    const year = parseInt(f.YEAR, 10);
+    if (!code || !idx[code] || !idx[code][year]) continue;
+    idx[code][year].count++;
+    idx[code][year].totalHa += parseFloat(f.CURRENT_SIZE) || 0;
+  }
+  return idx;
+}
+
+async function showDrilldown(statKey, regionCode) {
+  const rs = processedData.regionStats[regionCode];
+  const name = rs.name;
+
+  let title, sub, fraction, desc, tableHtml = '';
+
+  if (statKey === 'count') {
+    title = `${name} — fire count data trail`;
+    sub = `All fires where FIRE_NUMBER begins with "${regionCode}" · 2006–2025 · FPA only`;
+    fraction = `${fmtNum(rs.count)} fires`;
+    desc = `${rs.pctOfTotal} of all FPA fires. Derived from FIRE_NUMBER first letter = "${regionCode}".`;
+    tableHtml = '<div class="dt-loading" id="dt-table-slot">Loading annual breakdown from CSV…</div>';
+  } else if (statKey === 'ha') {
+    title = `${name} — hectares burned data trail`;
+    sub = `CURRENT_SIZE field, summed for all "${regionCode}" fires · FPA only`;
+    fraction = formatHa(rs.totalHa);
+    desc = `Total area burned 2006–2025 (CURRENT_SIZE, final burned area at extinguishment). Mean would be ${(rs.totalHa / rs.count).toFixed(0)} ha — not shown because right-skewed. Median: ${rs.medianHa.toFixed(2)} ha; p90: ${rs.p90Ha.toFixed(1)} ha.`;
+    tableHtml = '<div class="dt-loading" id="dt-table-slot">Loading annual breakdown from CSV…</div>';
+  } else if (statKey === 'median') {
+    title = `${name} — median fire size data trail`;
+    sub = `CURRENT_SIZE field, 50th percentile across all "${regionCode}" fires`;
+    fraction = `${rs.medianHa.toFixed(2)} ha`;
+    desc = `N = ${fmtNum(rs.count)} fires. Median used (not mean) because CURRENT_SIZE is extreme right-skew: FPA-wide mean is 262 ha vs median 0.02 ha. Mean for this region: ${(rs.totalHa / rs.count).toFixed(1)} ha.`;
+    tableHtml = '';
+  } else if (statKey === 'p90') {
+    title = `${name} — 90th percentile fire size data trail`;
+    sub = `CURRENT_SIZE field, 90th percentile across all "${regionCode}" fires`;
+    fraction = `${rs.p90Ha.toFixed(1)} ha`;
+    desc = `N = ${fmtNum(rs.count)} fires. 90th percentile = the size where 90% of fires are smaller. Shows the tail risk without being dominated by a single outlier.`;
+    tableHtml = '';
+  } else if (statKey.startsWith('cause:')) {
+    const cause = statKey.replace('cause:', '');
+    const cnt = rs.causeCounts[cause] || 0;
+    title = `${name} — "${cause}" cause data trail`;
+    sub = `GENERAL_CAUSE = "${cause}" · all "${regionCode}" fires · 2006–2025`;
+    fraction = `${fmtNum(cnt)} fires (${(cnt / rs.count * 100).toFixed(1)}%)`;
+    desc = `${fmtNum(cnt)} of ${fmtNum(rs.count)} fires in ${name} have GENERAL_CAUSE = "${cause}". GENERAL_CAUSE is always present (100% filled). Human-vs-Lightning note: "human-related" = all causes except Lightning, Undetermined, Under Investigation, Restart.`;
+    // Show full cause breakdown for context
+    const allCauses = Object.entries(rs.causeCounts).sort(([,a],[,b]) => b - a);
+    tableHtml = `<table class="dt-table" style="margin-top:10px">
+      <tr><th>GENERAL_CAUSE</th><th>Count</th><th>% of ${name}</th></tr>
+      ${allCauses.map(([c, n]) => `
+        <tr${c === cause ? ' style="background:#fdf4f2;font-weight:600"' : ''}>
+          <td>${escHtml(c)}</td><td>${fmtNum(n)}</td>
+          <td>${(n/rs.count*100).toFixed(1)}% (${fmtNum(n)} / ${fmtNum(rs.count)})</td>
+        </tr>`).join('')}
+    </table>
+    <div class="dt-scope">⚠ Cause categories changed in 2012: Agriculture Industry and Government were split out from Resident and Other Industry. Any cross-2012 trend carries this structural break.</div>`;
+  } else {
+    return;
+  }
+
+  await showModal({
+    title,
+    sub,
+    bodyHtml: `
+      <div class="dt-header">
+        <div class="dt-fraction">${fraction}</div>
+        <div class="dt-desc">${desc}</div>
+      </div>
+      ${tableHtml}
+      <div class="dt-scope">Source: fp-historical-wildfire-data-2006-2025.csv · Open Government Licence – Alberta · FPA only (excludes Mutual Aid)</div>`,
+    confirmLabel: 'Close',
+  });
+
+  // If we need annual breakdown, load CSV in background and update
+  if (statKey === 'count' || statKey === 'ha') {
+    const slot = document.getElementById('dt-table-slot');
+    if (!slot) return;
+    const idx = await loadCsvForDrilldown();
+    if (!idx) {
+      if (slot) slot.textContent = 'CSV not available — open from a local server to see row-level breakdown.';
+      return;
+    }
+    _csvByRegionYear = idx;
+    const rows = YEARS_ALL.map(y => {
+      const d = idx[regionCode][y] || { count: 0, totalHa: 0 };
+      const isRecent = RECENT_YEARS.has(y);
+      return `<tr class="${isRecent ? 'dt-recent' : ''}">
+        <td>${y}${isRecent ? ' ★' : ''}</td>
+        <td>${fmtNum(d.count)}</td>
+        <td>${formatHa(d.totalHa)}</td>
+      </tr>`;
+    }).join('');
+    if (slot) slot.outerHTML = `
+      <table class="dt-table">
+        <tr><th>Year</th><th>Fires (FIRE_NUMBER prefix "${regionCode}")</th><th>Total ha burned</th></tr>
+        ${rows}
+      </table>
+      <div class="dt-scope">★ = 2023–2025 (recent benchmark window). Sorted chronologically.</div>`;
+  }
+}
+
+// ============================================================
+// OVERRIDE: renderRegionBenchmark — make stats clickable
+// ============================================================
+
+const _origRenderBenchmark = renderRegionBenchmark;
+renderRegionBenchmark = function() {
+  _origRenderBenchmark();
+  const container = document.getElementById('benchmark');
+  if (!container) return;
+  // Find the stats grid and make each cell clickable
+  const statEls = container.querySelectorAll('.stat');
+  const keys = ['count', 'ha', 'median', 'p90'];
+  statEls.forEach((el, i) => {
+    if (!keys[i]) return;
+    el.classList.add('clickable');
+    el.title = 'Click to see data trail for this number';
+    el.addEventListener('click', () => showDrilldown(keys[i], selectedRegion));
+  });
+  // Make cause rows clickable
+  container.querySelectorAll('.cause-row').forEach(row => {
+    const lbl = row.querySelector('.lbl');
+    if (!lbl) return;
+    const cause = lbl.textContent.trim();
+    row.style.cursor = 'pointer';
+    row.title = `Click to see data trail for "${cause}"`;
+    row.addEventListener('click', () => showDrilldown('cause:' + cause, selectedRegion));
+  });
+};
+
+// ============================================================
+// OVERRIDE: renderWatchList — use watchThreshold (not const)
+// ============================================================
+
+const _origRenderWatchList = renderWatchList;
+renderWatchList = function(watchList) {
+  const container = document.getElementById('signals');
+  container.innerHTML = '';
+  watchList.forEach(w => {
+    const isHot = (w.countRatio >= watchThreshold || w.haRatio >= watchThreshold);
+    const isSel = w.code === selectedRegion;
+    const div = document.createElement('div');
+    div.className = `sig${isHot ? ' hot' : ''}${isSel ? ' sel' : ''}`;
+    div.dataset.region = w.code;
+
+    const countArrow = w.countRatio >= watchThreshold ? '▲' : (w.countRatio >= 1.0 ? '●' : '▼');
+    const haArrow    = w.haRatio    >= watchThreshold ? '▲' : (w.haRatio    >= 1.0 ? '●' : '▼');
+
+    const haRatioDisplay = w.haRatio > 999
+      ? `${Math.round(w.haRatio).toLocaleString()}×`
+      : `${w.haRatio.toFixed(2)}×`;
+    const haTitle    = `recent avg ${formatHa(w.recentHaAvg)}/yr ÷ 20-yr median ${formatHa(w.medianHa20)}/yr = ${w.haRatio.toFixed(1)}×`;
+    const countTitle = `recent avg ${w.recentCountAvg.toFixed(0)} fires/yr ÷ 20-yr median ${w.medianCount.toFixed(0)} fires/yr`;
+
+    div.innerHTML = `
+      <div class="name">${w.name}</div>
+      <div class="sig-ratios">
+        <div class="sig-ratio-row" title="${countTitle}">
+          <span class="sig-label">count</span>
+          <span class="sig-val${w.countRatio >= watchThreshold ? ' hot-val' : ''}">${countArrow} ${w.countRatio.toFixed(2)}×</span>
+        </div>
+        <div class="sig-ratio-row" title="${haTitle}">
+          <span class="sig-label">ha</span>
+          <span class="sig-val${w.haRatio >= watchThreshold ? ' hot-val' : ''}">${haArrow} ${haRatioDisplay}</span>
+        </div>
+      </div>
+      <div class="vs" style="font-weight:600;margin-top:4px">${isHot ? 'Watch' : 'Normal'}</div>
+    `;
+    div.addEventListener('click', () => {
+      selectedRegion = w.code;
+      renderWatchList(watchList);
+      renderRegionBenchmark();
+      renderAskPanel();
+    });
+    container.appendChild(div);
+  });
+};
+
+// ============================================================
+// OVERRIDE: renderResponseTime — enhanced with bar chart
+// ============================================================
+
+const _origRenderRT = renderResponseTime;
+renderResponseTime = function(rtStats) {
+  const container = document.getElementById('response-time');
+
+  const totalValid = Object.values(rtStats).reduce((s, r) => s + r.validLags, 0);
+  const totalFires = Object.values(rtStats).reduce((s, r) => s + r.total, 0);
+
+  if (totalValid === 0) {
+    container.innerHTML = `<div class="ph">Date parsing returned no valid lags. Check date format in source CSV.</div>`;
+    return;
+  }
+
+  const sorted = REGION_CODES
+    .filter(c => rtStats[c] && rtStats[c].medianLagHours !== null)
+    .sort((a, b) => rtStats[b].medianLagHours - rtStats[a].medianLagHours);
+
+  const maxLag = Math.max(...sorted.map(c => rtStats[c].medianLagHours));
+  const BAR_MAX_PX = 280;
+
+  const barRows = sorted.map(code => {
+    const r = rtStats[code];
+    const lagStr = r.medianLagHours < 1
+      ? `${(r.medianLagHours * 60).toFixed(0)} min`
+      : `${r.medianLagHours.toFixed(1)} hrs`;
+    const barW = maxLag > 0 ? Math.round((r.medianLagHours / maxLag) * BAR_MAX_PX) : 0;
+    const covPct = r.fieldCoverage.toFixed(1);
+    const isSelected = code === selectedRegion;
+    return `
+      <div class="rt-bar-row${isSelected ? '" style="background:#f7f2ea;border-radius:6px' : ''}">
+        <span class="rt-bar-label">${REGION_MAP[code]}</span>
+        <span class="rt-bar-fill" style="width:${barW}px;background:${r.medianLagHours > 1 ? 'var(--fire)' : 'var(--light)'}"></span>
+        <span class="rt-bar-val">${lagStr}</span>
+        <span class="rt-bar-cov">${covPct}% coverage</span>
+      </div>`;
+  }).join('');
+
+  const tableRows = sorted.map(code => {
+    const r = rtStats[code];
+    const lagStr = r.medianLagHours < 1
+      ? `${(r.medianLagHours * 60).toFixed(0)} min`
+      : `${r.medianLagHours.toFixed(1)} hrs`;
+    return `<tr>
+      <td>${REGION_MAP[code]}</td>
+      <td>${lagStr}</td>
+      <td>${r.fieldCoverage.toFixed(1)}% (${fmtNum(r.withField)} / ${fmtNum(r.total)})</td>
+      <td>${r.lagCoverage.toFixed(1)}% (${fmtNum(r.validLags)} valid lags)</td>
+    </tr>`;
+  }).join('');
+
+  const overallCoverage = totalFires > 0 ? (totalValid / totalFires * 100).toFixed(1) : '0.0';
+
+  container.innerHTML = `
+    <div class="rt-note">
+      Lag = REPORTED_DATE → FIRE_FIGHTING_START_DATE (this exact pair, per spec §4).
+      Blue = under 1 hr · Red = 1 hr or more. Highlighted row = currently selected region.
+    </div>
+    <div class="rt-bars">${barRows}</div>
+    <details style="margin-top:14px">
+      <summary style="font-size:12.5px;color:var(--muted);cursor:pointer">Show full table with coverage detail</summary>
+      <table class="placeholder" style="margin-top:8px">
+        <tr>
+          <th>Forest area</th>
+          <th>Median reported→suppression lag</th>
+          <th>FIRE_FIGHTING_START_DATE coverage</th>
+          <th>Valid lag coverage (≥0, ≤365d)</th>
+        </tr>
+        ${tableRows}
+      </table>
+    </details>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;">
+      ⚠ ${fmtNum(totalValid)} of ${fmtNum(totalFires)} fires (${overallCoverage}%) have valid lag data.
+      The ~29% missing FIRE_FIGHTING_START_DATE is disclosed, not assumed random —
+      fires without this field may differ systematically.
+    </div>
+  `;
+};
+
+
+</script>
+</body>
+</html>

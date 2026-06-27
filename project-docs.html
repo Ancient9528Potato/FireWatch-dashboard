@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FireWatch Alberta — Project Documentation</title>
+  <style>
+:root {
+  --ink: #1a1410;
+  --muted: #7a6f64;
+  --line: #e4ddd3;
+  --bg: #faf7f2;
+  --card: #fff;
+  --fire: #c0392b;
+  --light: #2f6fa8;
+  --human: #d98324;
+  --ok: #3a7d44;
+  --warn-bg: #fff8e1;
+  --warn-border: #f5c842;
+  --danger-bg: #fbeae8;
+  --danger-border: #e8c4bf;
+  --shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font: 15px/1.6 -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* ── Layout ── */
+.page { display: flex; min-height: 100vh; }
+
+nav.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--ink);
+  color: #e4ddd3;
+  padding: 28px 0 40px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+nav.sidebar .logo {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0 22px 22px;
+  border-bottom: 1px solid #3a332c;
+  color: #fff;
+  line-height: 1.3;
+}
+nav.sidebar .logo small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #b9ae9f;
+  margin-top: 3px;
+}
+nav.sidebar ul { list-style: none; padding: 14px 0; }
+nav.sidebar ul li a {
+  display: block;
+  padding: 7px 22px;
+  font-size: 13px;
+  color: #c9bfb3;
+  text-decoration: none;
+  transition: background .12s, color .12s;
+  border-left: 3px solid transparent;
+}
+nav.sidebar ul li a:hover {
+  background: #2e2720;
+  color: #fff;
+  border-left-color: var(--human);
+}
+nav.sidebar ul li a.active {
+  background: #2e2720;
+  color: #fff;
+  border-left-color: var(--fire);
+}
+nav.sidebar .nav-group {
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #6b5f53;
+  padding: 18px 22px 6px;
+  font-weight: 700;
+}
+
+main { flex: 1; padding: 40px 48px 80px; max-width: 860px; }
+
+/* ── Typography ── */
+h1 { font-size: 28px; letter-spacing: -.4px; margin-bottom: 6px; }
+h2 { font-size: 20px; margin: 48px 0 14px; padding-top: 12px; border-top: 2px solid var(--line); }
+h3 { font-size: 15px; font-weight: 700; margin: 22px 0 8px; }
+p  { margin: 10px 0; color: #3a322c; }
+code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 12.5px;
+  background: #f0e9df;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #7a2a22;
+}
+
+/* ── Hero ── */
+.hero {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 14px;
+  padding: 30px 34px;
+  margin-bottom: 36px;
+}
+.hero .tag {
+  display: inline-block;
+  background: var(--fire);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+.hero h1 { color: #fff; font-size: 26px; margin-bottom: 10px; }
+.hero p  { color: #c9bfb3; margin: 0; font-size: 14px; line-height: 1.6; }
+.hero .no-dataset {
+  margin-top: 16px;
+  background: #2e2720;
+  border-left: 4px solid var(--human);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: #e4ddd3;
+  font-style: italic;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  margin: 12px 0;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+.card h3 { margin-top: 0; }
+
+/* ── Decision table ── */
+.decision-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 12px 0;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.decision-row .lever {
+  width: 120px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  padding-top: 2px;
+}
+.decision-row .detail { font-size: 13.5px; }
+
+/* ── Callout boxes ── */
+.callout {
+  border-radius: 8px;
+  padding: 13px 16px;
+  margin: 14px 0;
+  font-size: 13.5px;
+}
+.callout.warn {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: #7a5c00;
+}
+.callout.danger {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: #7a2a22;
+}
+.callout.info {
+  background: #eef5fc;
+  border: 1px solid #b3d0ed;
+  color: #1a3c5e;
+}
+.callout.ok {
+  background: #edf7ef;
+  border: 1px solid #a3d4ac;
+  color: #1e4d28;
+}
+.callout b { display: block; margin-bottom: 4px; }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 10px 0;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f0e9df; font-weight: 700; }
+tr:hover td { background: #faf7f2; }
+td.ok-cell { color: var(--ok); font-weight: 700; }
+td.bad-cell { color: var(--fire); font-weight: 700; }
+td.warn-cell { color: var(--human); font-weight: 700; }
+
+/* ── File tree ── */
+.filetree {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 22px;
+  line-height: 1.9;
+}
+.filetree .dir { color: var(--light); font-weight: 600; }
+.filetree .file { color: var(--ink); }
+.filetree .desc { color: var(--muted); font-size: 12px; margin-left: 10px; font-family: inherit; }
+.filetree .key { color: var(--fire); font-weight: 700; }
+
+/* ── Pill tags ── */
+.pills { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+.pill {
+  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #f0e9df;
+  color: #5b5147;
+}
+.pill.red  { background: var(--danger-bg); border-color: var(--danger-border); color: #7a2a22; }
+.pill.blue { background: #eef5fc; border-color: #b3d0ed; color: #1a3c5e; }
+.pill.green{ background: #edf7ef; border-color: #a3d4ac; color: #1e4d28; }
+
+/* ── Numbered criteria ── */
+.criteria-list { list-style: none; counter-reset: crit; }
+.criteria-list li {
+  counter-increment: crit;
+  display: flex;
+  gap: 14px;
+  margin: 10px 0;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 13.5px;
+  align-items: flex-start;
+}
+.criteria-list li::before {
+  content: counter(crit);
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Never list ── */
+.never-list { list-style: none; }
+.never-list li {
+  padding: 6px 0 6px 22px;
+  position: relative;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--line);
+  color: #7a2a22;
+}
+.never-list li:last-child { border-bottom: none; }
+.never-list li::before {
+  content: '✕';
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+  color: var(--fire);
+}
+
+/* ── Business rule rows ── */
+.rule {
+  padding: 12px 16px;
+  border-left: 3px solid var(--human);
+  background: var(--card);
+  border-radius: 0 8px 8px 0;
+  margin: 8px 0;
+  font-size: 13.5px;
+}
+.rule .rule-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+/* ── Changelog entries ── */
+.changelog-entry {
+  border-left: 3px solid var(--line);
+  padding: 10px 16px;
+  margin: 10px 0;
+  font-size: 13.5px;
+}
+.changelog-entry .cl-date {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.changelog-entry.fixed { border-left-color: var(--ok); }
+.changelog-entry.pending { border-left-color: var(--human); }
+
+/* ── Region pill grid ── */
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+.region-pill {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  text-align: center;
+}
+.region-pill .code {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--fire);
+  display: block;
+  font-family: monospace;
+}
+.region-pill .rname { color: var(--muted); font-size: 11px; margin-top: 2px; }
+.region-pill .rcount { font-weight: 600; font-size: 12px; margin-top: 2px; }
+
+/* ── Section anchors ── */
+section { scroll-margin-top: 24px; }
+
+@media (max-width: 700px) {
+  .page { flex-direction: column; }
+  nav.sidebar { width: 100%; height: auto; position: static; }
+  main { padding: 24px 20px 60px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .region-grid { grid-template-columns: repeat(2, 1fr); }
+}
+  </style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="logo">
+    🔥 FireWatch Alberta
+    <small>Project Documentation</small>
+  </div>
+  <ul>
+    <div class="nav-group">Spec</div>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#user-decision">User &amp; Decision</a></li>
+    <li><a href="#success">Success Criteria</a></li>
+    <li><a href="#scope">Scope</a></li>
+    <li><a href="#business-rules">Business Rules</a></li>
+    <li><a href="#never">Must Never Produce</a></li>
+    <li><a href="#human-loop">Human-in-the-Loop</a></li>
+    <li><a href="#convergence">Convergence</a></li>
+    <li><a href="#changelog">Spec Changelog</a></li>
+
+    <div class="nav-group">Knowledge</div>
+    <li><a href="#folder">Folder Structure</a></li>
+    <li><a href="#data-profile">Data Profile</a></li>
+    <li><a href="#regions">10 Forest Areas</a></li>
+    <li><a href="#fields">Key Fields</a></li>
+    <li><a href="#cautions">Data Cautions</a></li>
+    <li><a href="#domain">Domain Notes</a></li>
+    <li><a href="#build-prompt">Build Prompt</a></li>
+  </ul>
+</nav>
+
+<!-- ── MAIN ── -->
+<main>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+  <div class="tag">MMA 616 · Group Project</div>
+  <h1>FireWatch Alberta — Living Spec</h1>
+  <p>A pre-season benchmarking dashboard for Alberta Wildfire. Compares each of the 10 forest areas against its own 20-year history — by fire count, hectares burned, and cause mix — so a planning analyst can recommend where to concentrate crews and prevention effort before peak season.</p>
+  <div class="no-dataset">
+    "This lets an Alberta wildfire planning analyst see which forest areas are running above their 20-year norm, and whether the cause is preventable, before the season peaks — so they can place crews and prevention effort with a defensible data trail."
+  </div>
+</div>
+
+
+<!-- ─── OVERVIEW ─── -->
+<section id="overview">
+  <h2>Overview</h2>
+  <div class="card">
+    <h3>The problem it solves</h3>
+    <p>Before each fire season (planning window runs through April, ahead of the May–Aug peak), Alberta Wildfire must decide where to pre-position Initial Attack crews and air tankers, and where to concentrate prevention effort. Today that means hand-assembling 20 years of fire records across 10 forest areas and ~15 cause categories — roughly a half-day of spreadsheet work that hides the signal.</p>
+    <p><strong>The leverage:</strong> this turns that half-day into a 5-minute read — which forest areas run hottest relative to their own 20-year norm, whether the load is lightning (→ detection/suppression) or human (→ prevention), with the historical trail behind every number.</p>
+  </div>
+</section>
+
+
+<!-- ─── USER & DECISION ─── -->
+<section id="user-decision">
+  <h2>User &amp; Decision</h2>
+  <div class="card">
+    <h3>Primary user</h3>
+    <p>A risk / emergency-planning analyst at <strong>Alberta Wildfire Management Branch</strong>. Has fire-domain expertise; is short on time and tooling. Produces a recommendation to the Director of Operations — <em>does not set policy alone</em>.</p>
+  </div>
+
+  <h3 style="margin-top:18px">The two decisions this changes</h3>
+  <div class="decision-row">
+    <div class="lever">Lever 1</div>
+    <div class="detail"><strong>Where to pre-position</strong> Initial Attack crews and air tankers before the season. Resources placed in a low-risk area are wasted; under-covering a hot area lets a fire escape where suppression effort multiplies.</div>
+  </div>
+  <div class="decision-row">
+    <div class="lever">Lever 2</div>
+    <div class="detail"><strong>Where to concentrate prevention</strong> — fire bans, public education, industry restrictions. The cause mix (lightning vs. human) is the key determinant: human-caused fires are preventable; lightning-caused fires are not.</div>
+  </div>
+</section>
+
+
+<!-- ─── SUCCESS CRITERIA ─── -->
+<section id="success">
+  <h2>Success Criteria</h2>
+  <p>Each standard is scoreable — a reviewer can check whether the dashboard passes or fails.</p>
+  <ul class="criteria-list">
+    <li>Every percentage carries its N. <em>"High Level is 14% of fires"</em> must render as <strong>"14.3% (3,970 / 27,828)"</strong>.</li>
+    <li>Fire size is reported as <strong>median + 90th percentile + total hectares</strong>, never a bare mean. (Verified: mean 262 ha vs median 0.02 ha — a bare mean is disqualifying.)</li>
+    <li><code>SIZE_CLASS</code> (A–E) is shown as a labelled category, never averaged.</li>
+    <li>Any cause trend that crosses <strong>2012</strong> carries the reclassification note (Agriculture/Government split out of Resident/Other Industry that year).</li>
+    <li>Cause breakdowns using <code>ACTIVITY_CLASS</code> / <code>TRUE_CAUSE</code> display the null share (~61% / ~53% filled).</li>
+    <li>Every view states the <strong>FPA-only</strong> scope (Forest Protection Area — excludes "Mutual Aid" fires outside it) where a total could be mistaken for all of Alberta.</li>
+    <li>The Signal panel shows the <strong>month distribution</strong> of fires within the 3-year flagging window so the analyst can judge whether elevated count falls inside the May–Aug peak.</li>
+    <li>All charts use a <strong>colorblind-safe palette</strong> (Okabe-Ito). No red/green encoding.</li>
+  </ul>
+
+  <h3 style="margin-top:20px">Gold example — the centrepiece answer the dashboard must reproduce exactly</h3>
+  <div class="callout ok">
+    <b>High Level forest area — 20-year benchmark</b>
+    3,970 fires 2006–2025 (14.3% of the FPA total of 27,828). Cause mix: Lightning 47.0% (1,865), Resident 18.9% (752), Incendiary 17.6% (698), Agriculture 4.8% (189), other 11.7% (N = 3,970). Median fire size 0.20 ha; 90th percentile 17.7 ha; <strong>total 2.33M ha</strong> — among the highest in the province, concentrated in escape years (2023, 2019, 2011). <strong>Read:</strong> lightning and human causes are nearly even here, so both detection reach AND prevention matter — unlike a pure-lightning northern area. <em>(FPA-only; cost and forecast out of scope.)</em>
+  </div>
+</section>
+
+
+<!-- ─── SCOPE ─── -->
+<section id="scope">
+  <h2>Scope</h2>
+
+  <h3>Smallest valuable version (ships Day 2)</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3>🚨 Signal panel <span style="font-size:11px;font-weight:400;color:var(--muted)">(landing screen)</span></h3>
+      <p>Watch list for each of the 10 forest areas. An area is flagged when its <strong>recent-3-year mean annual</strong> fire count or hectares is <strong>≥ 1.3×</strong> its 2006–2025 median annual. Count and hectares are flagged independently. The 1.3× threshold is analyst-adjustable — <em>it is an assumed starting value, not a derived standard</em>.</p>
+    </div>
+    <div class="card">
+      <h3>📊 Region benchmark card</h3>
+      <p>Selectable per area. Shows: fire count + % of FPA total (with N), total hectares, median + p90 fire size, cause mix as % with counts, and a plain-language "Read" paragraph. Click any stat for a data trail.</p>
+    </div>
+    <div class="card">
+      <h3>🔁 Cause-mix panel</h3>
+      <p>~15 <code>GENERAL_CAUSE</code> categories with explicit Human-vs-Lightning grouping (see Business Rules), per region and year. Null share always shown.</p>
+    </div>
+    <div class="card">
+      <h3>📈 Annual trend</h3>
+      <p>Fire count and total hectares 2006–2025 for selected region and all-FPA. 2012 reclassification break marked on the axis.</p>
+    </div>
+  </div>
+
+  <h3>Stretch goal</h3>
+  <div class="card">
+    <h3>⏱ Response-time view</h3>
+    <p>Median lag from <code>REPORTED_DATE → FIRE_FIGHTING_START_DATE</code> (this exact pair; not dispatch→arrival), on the ~71% of fires with the second field. The 29% gap is disclosed — not assumed random.</p>
+  </div>
+
+  <h3 style="margin-top:18px">Explicit refusals</h3>
+  <table>
+    <tr><th>What</th><th>Why it's out</th></tr>
+    <tr><td>Suppression cost optimization</td><td>No cost field exists in the data</td></tr>
+    <tr><td>Real-time / current-season monitoring</td><td>Data is a finalized annual record through 2025, not a live feed</td></tr>
+    <tr><td>Fire-spread or risk forecasting</td><td>Out of scope for a historical benchmark; fire-weather driver not in data</td></tr>
+    <tr><td>Per-fire mapping as core view</td><td>Lat/long exists (stretch), but the decision is regional, not per-fire</td></tr>
+  </table>
+
+  <h3 style="margin-top:18px">Human-vs-Lightning definition (explicit)</h3>
+  <div class="callout info">
+    <b>Required grouping — never infer from context</b>
+    <strong>Lightning:</strong> <code>GENERAL_CAUSE = 'Lightning'</code> only.<br>
+    <strong>Human-caused:</strong> Recreation · Resident · Incendiary · Agriculture Industry · Forest Industry · Oil &amp; Gas Industry · Other Industry · Power Line Industry · Government · Railroad.<br>
+    <strong>Indeterminate:</strong> Undetermined · Under Investigation · Restart · Prescribed Fire — shown separately, never collapsed into either group.
+  </div>
+</section>
+
+
+<!-- ─── BUSINESS RULES ─── -->
+<section id="business-rules">
+  <h2>Business Rules</h2>
+  <p>These rules are domain/statistical constraints. They apply regardless of how the agent is prompted and cannot be overridden without an audit log entry.</p>
+
+  <div class="rule"><div class="rule-label">Norm baseline</div>The norm = <strong>20-yr (2006–2025) mean annual value</strong>, computed separately for fire count and total hectares. Use mean, not median — annual hectares is so skewed that a median-based norm produces ratios in the hundreds (verified: 361×, 337×).</div>
+
+  <div class="rule"><div class="rule-label">Watch-list flag</div>An area is flagged when its <strong>recent-3-years (2023–2025) mean annual</strong> value is <strong>≥ 1.3×</strong> its 20-yr mean. Count and hectares are flagged independently. 1.3× is the analyst-adjustable threshold.</div>
+
+  <div class="rule"><div class="rule-label">Size reporting</div>Always <strong>median + p90 + total hectares</strong> together. Never a bare mean. Never average <code>SIZE_CLASS</code>.</div>
+
+  <div class="rule"><div class="rule-label">Cross-2012 cause trends</div>Always carry the reclassification note: Agriculture Industry and Government were split out of Resident and Other Industry in 2012.</div>
+
+  <div class="rule"><div class="rule-label">Cause-detail views</div><code>ACTIVITY_CLASS</code> / <code>TRUE_CAUSE</code> views always display the null share (60.6% / 52.5% filled province-wide).</div>
+
+  <div class="rule"><div class="rule-label">FPA scope</div>State "FPA only" wherever a total could be read as all-Alberta. Mutual Aid fires outside the Forest Protection Area are excluded.</div>
+</section>
+
+
+<!-- ─── NEVER ─── -->
+<section id="never">
+  <h2>Must Never Produce</h2>
+  <div class="callout danger">
+    <b>These are hard prohibitions. Violating any one disqualifies a view.</b>
+  </div>
+  <ul class="never-list">
+    <li>Causal language ("causes" / "drives") for a statistical association — use "associated with."</li>
+    <li>A bare mean fire size, or any use of the word "average" applied to <code>CURRENT_SIZE</code> without showing median and p90 alongside it.</li>
+    <li>An averaged <code>SIZE_CLASS</code> — it is an ordinal category, not a number.</li>
+    <li>A dollar or cost figure — <strong>no cost field exists in this data.</strong></li>
+    <li>A forecast ("next season will…") — this is a finalized historical record.</li>
+    <li>A climate-attribution claim — no FWI or climate series is present.</li>
+    <li>An FPA total presented as all-Alberta.</li>
+    <li>A "human-caused" grouping without explicitly naming which <code>GENERAL_CAUSE</code> values are included.</li>
+    <li>A position on the full-suppression-vs-managed-fire policy debate.</li>
+  </ul>
+</section>
+
+
+<!-- ─── HUMAN IN THE LOOP ─── -->
+<section id="human-loop">
+  <h2>Human-in-the-Loop</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Human has final word on</h3>
+      <ul style="font-size:13.5px;padding-left:18px;margin-top:6px">
+        <li>The deployment / prevention recommendation</li>
+        <li>Publishing or sharing any view</li>
+        <li>Whether a region is comparable across the 2012 cause reclassification</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--fire)">
+      <h3>Override log — not optional</h3>
+      <p style="font-size:13.5px">Any threshold change or flag override is logged with: <strong>who</strong> changed it · <strong>original flag/value</strong> · <strong>why</strong>. No log, no change. Log is stored in <code>localStorage</code> key <code>firewatchOverrides</code> and appended to any export.</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:6px">Schema: <code>{ timestamp, analystId, panel, originalValue, newValue, reason }</code></p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── CONVERGENCE ─── -->
+<section id="convergence">
+  <h2>Convergence — Three Candidates, Criteria Locked First</h2>
+  <div class="callout info" style="margin-bottom:14px">
+    <b>Method</b> Criteria were locked <em>before</em> comparing concepts, so the data could not quietly choose for us.
+  </div>
+
+  <h3>Locked criteria</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 18px">
+    <div class="rule"><div class="rule-label">C1</div><strong>Real decision + owner</strong> — a named user who can act on the output</div>
+    <div class="rule"><div class="rule-label">C2</div><strong>Data can honestly carry it</strong> — survives FPA-only, no-cost, no-forecast, right-skew constraints</div>
+    <div class="rule"><div class="rule-label">C3</div><strong>Decision-changing, not just interesting</strong> — output moves resources or effort</div>
+    <div class="rule"><div class="rule-label">C4</div><strong>Buildable and evaluable in the week</strong> — testable against known-answer cases</div>
+  </div>
+
+  <table>
+    <tr>
+      <th>#</th><th>Candidate</th><th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>Verdict</th>
+    </tr>
+    <tr>
+      <td><strong>A</strong></td>
+      <td><strong>Pre-season regional benchmark</strong> — chosen</td>
+      <td class="ok-cell">✓</td><td class="ok-cell">✓</td><td class="ok-cell">✓</td><td class="ok-cell">✓</td>
+      <td class="ok-cell">CHOSEN</td>
+    </tr>
+    <tr>
+      <td>B</td>
+      <td>Real-time operational monitor ("what's burning now")</td>
+      <td class="ok-cell">✓</td>
+      <td class="bad-cell">✕ Finalized record, no live feed</td>
+      <td class="warn-cell">Would if live</td>
+      <td class="bad-cell">✕</td>
+      <td class="bad-cell">Rejected C2</td>
+    </tr>
+    <tr>
+      <td>C</td>
+      <td>Per-fire cause-investigation explorer</td>
+      <td class="warn-cell">Weak — case-level</td>
+      <td class="warn-cell">⚠ TRUE_CAUSE 52.5% filled</td>
+      <td class="bad-cell">✕ Not a planning lever</td>
+      <td class="ok-cell">✓</td>
+      <td class="bad-cell">Rejected C1/C3</td>
+    </tr>
+  </table>
+</section>
+
+
+<!-- ─── CHANGELOG ─── -->
+<section id="changelog">
+  <h2>Spec Changelog</h2>
+  <p style="font-size:13px;color:var(--muted)">The spec is living. Gaps found during mocking and review are folded back here rather than discovered in the Build.</p>
+
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 1 — HTML skeleton mocking</div>
+    <p><strong>Watch-list signal was undefined.</strong> Skeleton had "running above norm" but no definition of which window, metric, or ratio. Fixed: pinned to recent-3-yr mean ≥ 1.3× the 2006–2025 median annual count, computed for count and hectares separately.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 1 — HTML skeleton mocking</div>
+    <p><strong>Response-time panel was unfillable.</strong> "Reported → first-suppression lag" didn't name the timestamp pair. Fixed: pinned to <code>REPORTED_DATE → FIRE_FIGHTING_START_DATE</code>, 29% gap disclosed.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 2 — interactive mock with real numbers</div>
+    <p><strong>Norm baseline was wrong for hectares.</strong> Using the median annual value caused ratios up to 361× (virtually every area flagged, signal noise). Fixed: norm is now the <strong>20-yr mean annual</strong>. With that fix, the real signal emerges: 9 of 10 areas burned ≥1.3× their 20-yr mean ha in 2023–2025, but 0 of 10 exceeded norm on fire count — the recent crisis is in area burned, not fire frequency.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 3 — spec review (v2)</div>
+    <p><strong>No interaction model.</strong> Fixed: Interaction Model section added — landing screen, click-to-load benchmark card, cross-panel filter behaviour, export actions.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 3 — spec review (v2)</div>
+    <p><strong>Human-vs-Lightning split undefined.</strong> Fixed: explicit three-group definition (Lightning / Human-caused / Indeterminate) added with exact <code>GENERAL_CAUSE</code> values per group.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 3 — spec review (v2)</div>
+    <p><strong>Override log had no storage target.</strong> Fixed: <code>localStorage</code> key, JSON schema, and print-export behaviour specified.</p>
+  </div>
+  <div class="changelog-entry fixed">
+    <div class="cl-date">2026-06-26 · Round 3 — spec review (v2)</div>
+    <p><strong>Evaluation test cases were empty.</strong> Fixed: 5 named test cases added — High Level (gold), Whitecourt (smallest), cross-2012 trend, threshold logic at both extremes, FPA scope guard.</p>
+  </div>
+</section>
+
+
+<!-- ─── FOLDER STRUCTURE ─── -->
+<section id="folder">
+  <h2>Knowledge Folder Structure</h2>
+  <div class="filetree">
+<span class="dir">mma616-group-ai-dashboard/</span>
+├── <span class="key file">CLAUDE.md</span>         <span class="desc">← Living spec — the primary instruction file the agent reads first on every run</span>
+├── <span class="file">CLAUDE-v2.md</span>      <span class="desc">← Improved spec (v2) with interaction model, explicit cause grouping, audit log storage</span>
+├── <span class="file">mockup.html</span>       <span class="desc">← Working dashboard — pre-computed data embedded, opens without a server</span>
+├── <span class="file">project-docs.html</span> <span class="desc">← This file</span>
+│
+├── <span class="dir">knowledge/</span>
+│   ├── <span class="key file">CLAUDE.md</span>         <span class="desc">← Copy of the spec (knowledge-folder version used in early builds)</span>
+│   ├── <span class="key file">data-cautions.md</span>  <span class="desc">← Load-bearing facts the agent must not guess (each line passes the Deletion Test)</span>
+│   ├── <span class="key file">data-dictionary.md</span><span class="desc">← Curated field reference — points at the official codebook, adds interpretation notes</span>
+│   ├── <span class="key file">data-profile.md</span>   <span class="desc">← Verified dataset statistics (27,828 rows, region counts, seasonality, scale)</span>
+│   ├── <span class="file">domain-research.md</span><span class="desc">← Distilled domain notes — patterns to verify, hard refusals, contested interpretations</span>
+│   ├── <span class="file">build-prompt.md</span>   <span class="desc">← Copy-as-prompt build instructions for Claude Code Day 2 build target</span>
+│   ├── <span class="file">cold-read.md</span>      <span class="desc">← Cold-read audit of the spec — stall points found and resolved before building</span>
+│   └── <span class="dir">survey-data/</span>
+│       ├── <span class="key file">fp-historical-wildfire-data-2006-2025.csv</span>  <span class="desc">← The data (27,828 rows)</span>
+│       └── <span class="file">fp-historical-wildfire-data-dictionary-2006-2025.pdf</span>  <span class="desc">← Official codebook</span>
+│
+├── <span class="dir">data/raw/</span>
+│   └── <span class="file">fp-historical-wildfire-data-2006-2025.csv</span>  <span class="desc">← Alternate data path (used by drill-down CSV loader)</span>
+│
+├── <span class="dir">evaluation/</span>
+│   ├── <span class="file">test-cases.md</span>     <span class="desc">← Known-answer test cases (5 defined in v2 spec)</span>
+│   ├── <span class="file">baseline-results.md</span>
+│   └── <span class="file">revised-results.md</span>
+│
+└── <span class="dir">(other)</span>
+    ├── <span class="file">README.md</span>
+    └── <span class="file">deployment-log.md</span>
+  </div>
+
+  <h3 style="margin-top:20px">Which files are load-bearing (agent reads first)</h3>
+  <div class="pills">
+    <span class="pill red">CLAUDE.md — primary spec</span>
+    <span class="pill red">knowledge/data-cautions.md — facts agent can't guess</span>
+    <span class="pill red">knowledge/data-dictionary.md — field reference</span>
+    <span class="pill blue">knowledge/data-profile.md — verified dataset stats</span>
+    <span class="pill blue">knowledge/survey-data/fp-historical-wildfire-data-2006-2025.csv — the data</span>
+    <span class="pill">knowledge/domain-research.md — domain context</span>
+    <span class="pill">knowledge/cold-read.md — spec audit log</span>
+    <span class="pill">knowledge/build-prompt.md — build instructions</span>
+  </div>
+</section>
+
+
+<!-- ─── DATA PROFILE ─── -->
+<section id="data-profile">
+  <h2>Data Profile</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Source</h3>
+      <p>Alberta Forestry &amp; Parks — Historical Wildfire Database 2006–2025.<br>
+      Open Government Licence – Alberta.<br>
+      Dictionary dated March 19, 2026.</p>
+    </div>
+    <div class="card">
+      <h3>One row</h3>
+      <p>One wildfire incident inside the <strong>Forest Protection Area (FPA)</strong>, from ignition to extinguishment. 50 fields covering identity, location, size, cause chain, response timing, fire status progression, and weather/fuel at initial assessment.</p>
+    </div>
+    <div class="card">
+      <h3>Scale</h3>
+      <p><strong>27,828 fire records</strong>, 2006–2025 (20 complete years).<br>
+      Annual range: 723 (2020) – 1,954 (2006). Typical year ~1,200–1,900.<br>
+      2025 is a complete year (1,277 fires).</p>
+    </div>
+    <div class="card">
+      <h3>Coverage</h3>
+      <p><strong>FPA only.</strong> Fires outside the Forest Protection Area ("Mutual Aid" fires) are excluded. Any provincial total understates total Alberta fire activity.<br>
+      This is the full administrative record within the FPA — not a sample.</p>
+    </div>
+  </div>
+
+  <h3>Seasonality (verified from FIRE_START_DATE)</h3>
+  <div class="callout info">
+    Peak season: <strong>May–August</strong>. May is the single largest month (6,423 fires), then July (5,693), June (4,643), August (3,273). Off-season (November–February) is small but non-zero.
+  </div>
+
+  <h3 style="margin-top:16px">Size distribution (CURRENT_SIZE)</h3>
+  <table>
+    <tr><th>Statistic</th><th>Value</th><th>What it tells you</th></tr>
+    <tr><td>Mean</td><td>262 ha</td><td>Useless in isolation — dominated by catastrophic escape fires</td></tr>
+    <tr><td><strong>Median</strong></td><td><strong>0.02 ha</strong></td><td>The typical fire is tiny</td></tr>
+    <tr><td>p90</td><td>2.5 ha</td><td>90% of fires are under 2.5 ha</td></tr>
+    <tr><td>Max</td><td>577,647 ha</td><td>One fire = 13,000× the median</td></tr>
+    <tr><td>Top 1% of fires</td><td>~97% of all ha burned</td><td>Count and area tell different stories — never collapse them</td></tr>
+  </table>
+
+  <h3 style="margin-top:16px">SIZE_CLASS distribution</h3>
+  <table>
+    <tr><th>Class</th><th>Range</th><th>Count</th><th>Note</th></tr>
+    <tr><td>A</td><td>0 – 0.1 ha</td><td>18,280</td><td>Small fires dominate the count</td></tr>
+    <tr><td>B</td><td>&gt;0.1 – 4 ha</td><td>7,272</td><td></td></tr>
+    <tr><td>C</td><td>&gt;4 – 40 ha</td><td>1,344</td><td></td></tr>
+    <tr><td>D</td><td>&gt;40 – 200 ha</td><td>407</td><td></td></tr>
+    <tr><td>E</td><td>&gt;200 ha</td><td>525</td><td>E &gt; D: catastrophic fires are their own tail</td></tr>
+  </table>
+  <div class="callout warn" style="margin-top:8px">
+    <b>Never average SIZE_CLASS</b> — it is an ordinal category with unequal-width bins.
+  </div>
+</section>
+
+
+<!-- ─── 10 FOREST AREAS ─── -->
+<section id="regions">
+  <h2>10 Forest Areas</h2>
+  <div class="callout warn" style="margin-bottom:14px">
+    <b>No region column in the data.</b> Region is derived from the first letter of <code>FIRE_NUMBER</code>. Any code that doesn't look up a known letter must be discarded.
+  </div>
+  <div class="region-grid">
+    <div class="region-pill"><span class="code">C</span><div class="rname">Calgary</div><div class="rcount">4,442 fires</div></div>
+    <div class="region-pill"><span class="code">E</span><div class="rname">Edson</div><div class="rcount">2,313 fires</div></div>
+    <div class="region-pill"><span class="code">G</span><div class="rname">Grande Prairie</div><div class="rcount">1,885 fires</div></div>
+    <div class="region-pill"><span class="code">H</span><div class="rname">High Level</div><div class="rcount">3,970 fires</div></div>
+    <div class="region-pill"><span class="code">L</span><div class="rname">Lac La Biche</div><div class="rcount">3,515 fires</div></div>
+    <div class="region-pill"><span class="code">M</span><div class="rname">Fort McMurray</div><div class="rcount">2,068 fires</div></div>
+    <div class="region-pill"><span class="code">P</span><div class="rname">Peace River</div><div class="rcount">2,522 fires</div></div>
+    <div class="region-pill"><span class="code">R</span><div class="rname">Rocky</div><div class="rcount">1,991 fires</div></div>
+    <div class="region-pill"><span class="code">S</span><div class="rname">Slave Lake</div><div class="rcount">3,739 fires</div></div>
+    <div class="region-pill"><span class="code">W</span><div class="rname">Whitecourt</div><div class="rcount">1,383 fires</div></div>
+  </div>
+</section>
+
+
+<!-- ─── KEY FIELDS ─── -->
+<section id="fields">
+  <h2>Key Fields</h2>
+  <table>
+    <tr><th>Field</th><th>Use</th><th>Watch out</th></tr>
+    <tr><td><code>FIRE_NUMBER</code></td><td>Region (1st letter) + unique ID</td><td>Numbers may be reused if assigned in error</td></tr>
+    <tr><td><code>YEAR</code></td><td>Annual aggregation</td><td>Detection year; assessment_datetime sets fire year (usually same)</td></tr>
+    <tr><td><code>CURRENT_SIZE</code></td><td>Final hectares burned — all area math</td><td>Extreme right-skew → median + p90 + total, never bare mean</td></tr>
+    <tr><td><code>ASSESSMENT_HECTARES</code></td><td>Size at first assessment</td><td>Different from CURRENT_SIZE — don't mix in one series</td></tr>
+    <tr><td><code>SIZE_CLASS</code></td><td>Ordinal A–E bin</td><td>Never average — unequal-width bins</td></tr>
+    <tr><td><code>GENERAL_CAUSE</code></td><td>Top-level cause (~15 categories)</td><td>Always present (100% filled). Categories changed in 2012/2016</td></tr>
+    <tr><td><code>ACTIVITY_CLASS</code></td><td>Cause detail level 2</td><td>60.6% filled — show null share</td></tr>
+    <tr><td><code>TRUE_CAUSE</code></td><td>Cause detail level 3</td><td>52.5% filled — show null share</td></tr>
+    <tr><td><code>REPORTED_DATE</code></td><td>Report timestamp</td><td>100% filled</td></tr>
+    <tr><td><code>DISPATCH_DATE</code></td><td>Dispatch timestamp</td><td>99.9% filled</td></tr>
+    <tr><td><code>FIRE_FIGHTING_START_DATE</code></td><td>Suppression start — used for response-time view</td><td>71.2% filled — disclose 29% gap</td></tr>
+    <tr><td><code>IA_ARRIVAL_AT_FIRE_DATE</code></td><td>Initial attack arrival</td><td>70.8% filled</td></tr>
+    <tr><td><code>LATITUDE, LONGITUDE</code></td><td>Ignition point (decimal degrees)</td><td>100% filled — supports mapping stretch goal</td></tr>
+    <tr><td><code>TEMPERATURE, RELATIVE_HUMIDITY, WIND_SPEED</code></td><td>Conditions at initial assessment</td><td>~89.5% filled; point-in-time only — not the weather that drove the full fire run</td></tr>
+  </table>
+
+  <div class="callout danger" style="margin-top:10px">
+    <b>Does not exist — do not invent</b>
+    No suppression cost / dollar field · No fire-weather-index (FWI) field · No region/fire-centre column (derive from FIRE_NUMBER)
+  </div>
+</section>
+
+
+<!-- ─── DATA CAUTIONS ─── -->
+<section id="cautions">
+  <h2>Data Cautions</h2>
+  <p style="font-size:13px;color:var(--muted)">Each line in <code>knowledge/data-cautions.md</code> passes the Deletion Test: remove it and a wrong number ships.</p>
+
+  <div class="callout warn" style="margin-top:10px">
+    <b>Cause categories changed mid-series — flag every cross-2012 trend</b>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px">
+      <li><code>Agriculture Industry</code> introduced 2012; pre-2012 fires sit under <code>Resident</code></li>
+      <li><code>Government</code> introduced 2012; pre-2012 under <code>Other Industry</code></li>
+      <li><code>Prescribed Fire</code> used only 2012–2016 (19 records total)</li>
+      <li><code>Restart</code> used only until 2012</li>
+    </ul>
+    A "Resident fires over time" line will show a false drop in 2012 purely from reclassification — always note the break.
+  </div>
+
+  <div class="callout warn" style="margin-top:10px">
+    <b>Detection/response timing fields are partial</b>
+    <code>REPORTED_DATE</code> 100% · <code>DISPATCH_DATE</code> 99.9% · <code>FIRE_FIGHTING_START_DATE</code> 71.2% · <code>IA_ARRIVAL_AT_FIRE_DATE</code> 70.8%. Response-time analysis must report on the ~71% with data and disclose the missing 29% — do not assume the gap is random.
+  </div>
+
+  <div class="callout warn" style="margin-top:10px">
+    <b>Weather fields are point-in-time at initial assessment, not the weather that drove the fire's full run</b>
+    Do not treat <code>TEMPERATURE</code> / <code>RELATIVE_HUMIDITY</code> / <code>WIND_SPEED</code> as season or daily climate.
+  </div>
+</section>
+
+
+<!-- ─── DOMAIN NOTES ─── -->
+<section id="domain">
+  <h2>Domain Notes</h2>
+  <p style="font-size:13px;color:var(--muted)">From <code>knowledge/domain-research.md</code> — treat as claims to verify against the data, not established facts.</p>
+
+  <div class="card-grid" style="margin-top:12px">
+    <div class="card">
+      <h3>Patterns to verify</h3>
+      <ul style="font-size:13.5px;padding-left:18px;margin-top:6px">
+        <li>Lightning is the single largest cause by count (~35%) but human causes dominate in aggregate — verify per region, since the split drives whether strategy is prevention vs. detection.</li>
+        <li>Top 1% of fires ≈ 97% of all hectares burned — verify. If true, "fire count" and "hectares burned" tell different stories.</li>
+        <li>2023 and 2024 were severe years in Alberta — verify against <code>CURRENT_SIZE</code> totals before stating it.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Contested — stay neutral</h3>
+      <p style="font-size:13.5px">Whether aggressive full-suppression raises long-run risk by building fuel load is debated among fire scientists. The dashboard shows the historical pattern and must <strong>not</strong> take a side on suppression policy.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── BUILD PROMPT ─── -->
+<section id="build-prompt">
+  <h2>Build Prompt</h2>
+  <p style="font-size:13px;color:var(--muted)">From <code>knowledge/build-prompt.md</code> — the copy-as-prompt instruction for Claude Code to build the dashboard against the mockup skeleton.</p>
+
+  <div class="card" style="font-size:13px;line-height:1.7">
+    <p><strong>Build FireWatch Alberta</strong>. The spec is <code>CLAUDE.md</code>; the knowledge is in <code>knowledge/</code>; the data is connected at <code>knowledge/survey-data/fp-historical-wildfire-data-2006-2025.csv</code> with its dictionary PDF beside it. The visual target is <code>mockup.html</code> — replace its placeholder content with live computation.</p>
+    <p><strong>Read first, do not guess:</strong> <code>CLAUDE.md</code>, <code>knowledge/data-cautions.md</code>, <code>knowledge/data-dictionary.md</code>. Every rule in "Must never produce" is binding.</p>
+    <p><strong>Build, in priority order:</strong></p>
+    <ol style="padding-left:20px;margin:6px 0">
+      <li>Signal panel — computed ratios, flagged areas</li>
+      <li>Region benchmark card — High Level must reproduce the gold example exactly</li>
+      <li>Annual trend — with 2012 break marked</li>
+      <li>Count-vs-hectares dual story — top 1% of fires ≈ 97% of all ha</li>
+      <li><em>Stretch:</em> response-time by area, disclosing the 29% gap</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+// Highlight active nav item on scroll
+const sections = document.querySelectorAll('section[id]');
+const links    = document.querySelectorAll('nav a[href^="#"]');
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

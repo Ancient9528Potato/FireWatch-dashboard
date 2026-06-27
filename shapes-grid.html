@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FireWatch — Four Shapes, Then Converge</title>
+<style>
+  :root{--ink:#1a1410;--muted:#7a6f64;--line:#e4ddd3;--bg:#faf7f2;--card:#fff;
+        --fire:#c0392b;--ok:#3a7d44;--shadow:0 1px 3px rgba(0,0,0,.06);}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 60px;}
+  h1{font-size:24px;margin:0 0 2px;letter-spacing:-.3px;}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .shape{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);position:relative;}
+  .shape.win{border:2px solid var(--fire);}
+  .shape h3{margin:0 0 2px;font-size:16px;}
+  .shape .role{font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+  .badge{position:absolute;top:-11px;right:14px;background:var(--fire);color:#fff;font-size:11px;
+         letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:20px;font-weight:700;}
+  /* schematic mini-mockups */
+  .mini{height:130px;border:1px solid var(--line);border-radius:8px;background:#fcfaf6;padding:8px;display:flex;gap:6px;overflow:hidden;}
+  .blk{background:#e9e1d5;border-radius:4px;}
+  .blk.fire{background:#edc9c3;}
+  .blk.dark{background:#cfc4b3;}
+  /* layout A: card grid */
+  .mA{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:34px;gap:5px;}
+  /* layout B: sidebar + focus */
+  .mB .side{width:30%;display:flex;flex-direction:column;gap:5px;}
+  .mB .side .blk{height:18px;} .mB .focus{flex:1;}
+  /* layout C: map led */
+  .mC{align-items:center;justify-content:center;}
+  .mC .map{width:55%;height:100%;background:#e3ddd0;border-radius:8px;position:relative;}
+  .mC .pin{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--fire);}
+  .mC .panel{width:45%;height:100%;display:flex;flex-direction:column;gap:5px;padding-left:6px;}
+  .mC .panel .blk{height:16px;}
+  /* layout D: leaderboard */
+  .mD{flex-direction:column;gap:4px;}
+  .mD .row{height:15px;border-radius:3px;background:#e9e1d5;}
+  .pros{font-size:12.5px;margin-top:12px;}
+  .pros .p{color:#3a6b3f;} .pros .c{color:#9a3b30;}
+  .pros div{margin:3px 0;}
+  table.cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:26px;}
+  table.cmp th,table.cmp td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
+  table.cmp th{background:#f0e9df;}
+  table.cmp .win td{background:#fdf4f2;font-weight:600;}
+  .verdict{background:#f7f2ea;border-left:4px solid var(--fire);border-radius:8px;padding:14px 18px;margin-top:22px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FireWatch Alberta — four shapes of the deliverable</h1>
+  <div class="sub">Same chosen concept (pre-season regional benchmark). Four distinct <em>forms</em>, compared, then converged. Schematic — content is placeholder.</div>
+
+  <div class="grid">
+
+    <!-- Shape A -->
+    <div class="shape">
+      <h3>A · Region card grid</h3>
+      <div class="role">10 forest-area cards; click one to expand its benchmark.</div>
+      <div class="mini mA">
+        <div class="blk fire"></div><div class="blk"></div><div class="blk"></div>
+        <div class="blk"></div><div class="blk"></div><div class="blk fire"></div>
+        <div class="blk"></div><div class="blk fire"></div><div class="blk"></div>
+      </div>
+      <div class="pros">
+        <div class="p">+ All 10 areas visible at once; good overview.</div>
+        <div class="c">– No single focal answer; the gold example competes with 9 peers for the eye.</div>
+      </div>
+    </div>
+
+    <!-- Shape B (winner) -->
+    <div class="shape win">
+      <div class="badge">Converged</div>
+      <h3>B · Watch-list + focus card</h3>
+      <div class="role">Signal list on top; one big benchmark card below as the centrepiece.</div>
+      <div class="mini mB">
+        <div class="side"><div class="blk fire"></div><div class="blk fire"></div><div class="blk"></div><div class="blk"></div></div>
+        <div class="focus blk dark"></div>
+      </div>
+      <div class="pros">
+        <div class="p">+ One unmistakable focal point — the gold example owns the screen.</div>
+        <div class="p">+ Signal panel answers "where do I look first?" immediately.</div>
+        <div class="c">– Shows one region's detail at a time (acceptable: the decision is one area at a time).</div>
+      </div>
+    </div>
+
+    <!-- Shape C -->
+    <div class="shape">
+      <h3>C · Map-led drill-down</h3>
+      <div class="role">Alberta map with the 10 areas; click a region to open its panel.</div>
+      <div class="mini mC">
+        <div class="map"><span class="pin" style="top:20%;left:30%"></span><span class="pin" style="top:45%;left:55%"></span><span class="pin" style="top:65%;left:35%"></span></div>
+        <div class="panel"><div class="blk"></div><div class="blk fire"></div><div class="blk"></div></div>
+      </div>
+      <div class="pros">
+        <div class="p">+ Geography is intuitive; spatial pattern reads instantly.</div>
+        <div class="c">– Needs a GIS layer we have not connected; lat/long is per-fire, not per-area boundary. Over-budget for week one.</div>
+      </div>
+    </div>
+
+    <!-- Shape D -->
+    <div class="shape">
+      <h3>D · Ranked leaderboard</h3>
+      <div class="role">Sortable table: all 10 areas ranked by count / hectares / ratio-to-norm.</div>
+      <div class="mini mD">
+        <div class="row" style="width:100%"></div><div class="row" style="width:88%"></div>
+        <div class="row" style="width:72%;background:#edc9c3"></div><div class="row" style="width:60%"></div>
+        <div class="row" style="width:48%"></div><div class="row" style="width:35%"></div>
+      </div>
+      <div class="pros">
+        <div class="p">+ Dense, sortable, great for ranking; honest about count-vs-hectares split.</div>
+        <div class="c">– A table is a tool, not an answer; no gold example, weak for a 2-min show-don't-tell.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- comparison + convergence -->
+  <table class="cmp">
+    <tr><th>Shape</th><th>One focal answer?</th><th>Buildable in a week?</th><th>Show-don't-tell in 2 min?</th><th>Fits the decision?</th></tr>
+    <tr><td>A · Card grid</td><td>No</td><td>Yes</td><td>OK</td><td>Overview, not a call</td></tr>
+    <tr class="win"><td>B · Watch-list + focus</td><td><b>Yes</b></td><td><b>Yes</b></td><td><b>Strong</b></td><td><b>One area at a time = the decision</b></td></tr>
+    <tr><td>C · Map-led</td><td>Yes</td><td>No (needs GIS)</td><td>Strong</td><td>Yes but over-budget</td></tr>
+    <tr><td>D · Leaderboard</td><td>No</td><td>Yes</td><td>Weak</td><td>Ranking, not a call</td></tr>
+  </table>
+
+  <div class="verdict">
+    <b>Converged on B.</b> It is the only shape with a single unmistakable focal point (the gold example owns the screen), it is buildable from the connected CSV with no new data layer, and the watch-list-then-focus flow mirrors how the analyst actually decides — scan for the hot area, then read that one area in depth. We keep <b>D's ranking idea</b> as the watch-list's sort, and revisit <b>C's map</b> only as a post-week stretch if a GIS layer is connected. <code>mockup.html</code> is the realization of B.
+  </div>
+
+</div>
+</body>
+</html>
